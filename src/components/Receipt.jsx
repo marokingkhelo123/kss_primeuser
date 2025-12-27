@@ -3,6 +3,7 @@ import JsBarcode from "jsbarcode";
 
 const Receipt = ({ receiptData, onClose }) => {
   const barcodeRef = useRef(null);
+  const printedReceiptsRef = useRef(new Set());
 
   // Map backend bet keys to numbers
   const betKeyToNumber = {
@@ -46,135 +47,176 @@ const Receipt = ({ receiptData, onClose }) => {
 
   // Generate barcode
   useEffect(() => {
-    if (barcodeRef.current && receiptData?.uniqueString) {
-      try {
-        // Clear previous barcode
-        barcodeRef.current.innerHTML = "";
-        JsBarcode(barcodeRef.current, receiptData.uniqueString, {
-          format: "CODE128",
-          width: 2,
-          height: 60,
-          displayValue: false,
-        });
-      } catch (error) {
-        console.error("Error generating barcode:", error);
-      }
+    if (!receiptData?.uniqueString || !barcodeRef.current) return;
+
+    try {
+      // Clear previous barcode
+      barcodeRef.current.innerHTML = "";
+      JsBarcode(barcodeRef.current, receiptData.uniqueString, {
+        format: "CODE128",
+        width: 2,
+        height: 60,
+        displayValue: false,
+      });
+    } catch (error) {
+      console.error("Error generating barcode:", error);
     }
+
     return () => {
       // Cleanup: clear barcode on unmount
       if (barcodeRef.current) {
         barcodeRef.current.innerHTML = "";
       }
     };
-  }, [receiptData]);
+  }, [receiptData?.uniqueString]);
+
+  // Auto-print after barcode is ready
+  useEffect(() => {
+    if (!receiptData) return;
+
+    // Use orderNumber or uniqueString as unique identifier
+    const receiptId = receiptData.orderNumber || receiptData.uniqueString || Date.now().toString();
+    
+    // Skip if this receipt has already been printed
+    if (printedReceiptsRef.current.has(receiptId)) {
+      return;
+    }
+
+    const triggerPrint = () => {
+      // Mark this receipt as printed
+      printedReceiptsRef.current.add(receiptId);
+      
+      // Wait longer to ensure barcode SVG is fully rendered
+      setTimeout(() => {
+        window.print();
+        // Close after print dialog is shown
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 100);
+      }, 500);
+    };
+
+    // Wait for barcode to be generated before printing
+    const printTimer = setTimeout(() => {
+      triggerPrint();
+    }, 600);
+
+    return () => clearTimeout(printTimer);
+  }, [receiptData, onClose]);
 
   const betDetails = formatBetDetails(receiptData?.betAmounts || {});
   const betColumns = distributeBetsIntoColumns(betDetails);
   const maxColumnLength = Math.max(...betColumns.map(col => col.length));
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   if (!receiptData) return null;
 
   const fontSizes = {
     king: 40,
-    sm: 15,
-    xs: 16,
-    base: 17,
+    sm: 18,
+    xs: 18,
+    base: 18,
   };
 
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center"
-        style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
-        onClick={onClose}
+        className="receipt-container"
+        style={{ 
+          position: "absolute",
+          left: "-9999px",
+          width: "400px",
+          visibility: "hidden",
+          display: "block"
+        }}
       >
-        <div
-          className="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-4 overflow-hidden receipt-container"
-          onClick={(e) => e.stopPropagation()}
-          style={{ width: "400px" }}
-        >
           {/* Receipt Content */}
           <div
-            className="bg-white p-6 print:p-4"
-            style={{ fontFamily: "Arial, sans-serif" }}
+            className="bg-white p-4 print:p-3"
+            style={{ 
+              fontFamily: "Arial, sans-serif",
+              width: "100%",
+              maxWidth: "400px",
+              margin: "0 auto"
+            }}
           >
-            {/* Header */}
-            <div className="text-center mb-4">
+            {/* Header - King Title */}
+            <div className="text-center mb-3">
               <h2
-                className="text-3xl font-bold text-black"
-                style={{ fontSize: `${fontSizes.king}px`, fontWeight: "bold" }}
+                className="font-bold text-black"
+                style={{ 
+                  fontSize: `${fontSizes.king}px`, 
+                  fontWeight: "bold",
+                  margin: "0",
+                  lineHeight: "1.2"
+                }}
               >
                 King
               </h2>
             </div>
 
             {/* First Row: KUID and Order Number */}
-            <div className="mb-2 flex justify-between">
-              <div>
-                <span className="text-sm font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
-                  KUID -{" "}
-                </span>
-                <span className="text-sm" style={{ fontSize: `${fontSizes.sm}px` }}>
-                  {receiptData.kuid || "N/A"}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
-                  Oder No.{" "}
-                </span>
-                <span className="text-sm" style={{ fontSize: `${fontSizes.sm}px` }}>
-                  {receiptData.orderNumber || "N/A"}
-                </span>
-              </div>
-            </div>
-
-            {/* Second Row: Date and Draw Time */}
-            <div className="mb-4 flex justify-between">
-              <div>
-                <span className="text-sm font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
-                  Date{" "}
-                </span>
-                <span className="text-sm" style={{ fontSize: `${fontSizes.sm}px` }}>
-                  {receiptData.date || "N/A"}
-                </span>
-              </div>
-              {receiptData.drawTime && (
+            <div className="mb-1 flex justify-between items-start">
+              <div style={{ lineHeight: "1.4" }}>
                 <div>
-                  <span className="text-sm font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
-                    Draw Time -{" "}
+                  <span className="font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
+                    KUID -{" "}
                   </span>
-                  <span className="text-sm" style={{ fontSize: `${fontSizes.sm}px` }}>
-                    {receiptData.drawTime}
+                  <span style={{ fontSize: `${fontSizes.sm}px` }}>
+                    {receiptData.kuid || "0001"}
                   </span>
                 </div>
-              )}
+                <div>
+                  <span className="font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
+                    Date{" "}
+                  </span>
+                  <span style={{ fontSize: `${fontSizes.sm}px` }}>
+                    {receiptData.date || "01/01/2024"}
+                  </span>
+                </div>
+              </div>
+              <div style={{ lineHeight: "1.4", textAlign: "right" }}>
+                <div>
+                  <span className="font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
+                    Oder No.{" "}
+                  </span>
+                  <span style={{ fontSize: `${fontSizes.sm}px` }}>
+                    {receiptData.orderNumber || "0000001"}
+                  </span>
+                </div>
+                {receiptData.drawTime && (
+                  <div>
+                    <span className="font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
+                      Draw Time -{" "}
+                    </span>
+                    <span style={{ fontSize: `${fontSizes.sm}px` }}>
+                      {receiptData.drawTime}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Bet Details Header */}
-            <div className="mb-2">
-              <div className="grid grid-cols-3 gap-2 text-xs font-bold border-b border-gray-300 pb-1">
-                <div style={{ fontSize: `${fontSizes.xs}px` }}>Ac / Qt</div>
-                <div style={{ fontSize: `${fontSizes.xs}px` }}>Ac / Qt</div>
-                <div style={{ fontSize: `${fontSizes.xs}px` }}>Ac / Qt</div>
+            <div className="mb-1 mt-3">
+              <div className="grid grid-cols-3 gap-1 font-bold" style={{ fontSize: `${fontSizes.xs}px` }}>
+                <div>Ac / Qt</div>
+                <div>Ac / Qt</div>
+                <div>Ac / Qt</div>
               </div>
             </div>
 
             {/* Bet Details List - Distributed across 3 columns */}
-            <div className="mb-4">
-              <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="mb-2">
+              <div className="grid grid-cols-3 gap-1" style={{ fontSize: `${fontSizes.xs}px` }}>
                 {Array.from({ length: maxColumnLength }).map((_, rowIndex) => (
                   <React.Fragment key={rowIndex}>
-                    <div className="py-0.5" style={{ fontSize: `${fontSizes.xs}px` }}>
+                    <div style={{ padding: "1px 0", lineHeight: "1.3" }}>
                       {betColumns[0][rowIndex] ? `${betColumns[0][rowIndex].number} * ${betColumns[0][rowIndex].amount}` : ""}
                     </div>
-                    <div className="py-0.5" style={{ fontSize: `${fontSizes.xs}px` }}>
+                    <div style={{ padding: "1px 0", lineHeight: "1.3" }}>
                       {betColumns[1][rowIndex] ? `${betColumns[1][rowIndex].number} * ${betColumns[1][rowIndex].amount}` : ""}
                     </div>
-                    <div className="py-0.5" style={{ fontSize: `${fontSizes.xs}px` }}>
+                    <div style={{ padding: "1px 0", lineHeight: "1.3" }}>
                       {betColumns[2][rowIndex] ? `${betColumns[2][rowIndex].number} * ${betColumns[2][rowIndex].amount}` : ""}
                     </div>
                   </React.Fragment>
@@ -183,86 +225,105 @@ const Receipt = ({ receiptData, onClose }) => {
             </div>
 
             {/* Total Points */}
-            <div className="mb-4 border-t border-gray-300 pt-2">
-              <div className="text-sm font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
+            <div className="mb-2 mt-2">
+              <div className="font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
                 Total Pts - {receiptData.totalBetPoints?.toFixed(2) || "0.00"}
               </div>
             </div>
 
             {/* Print Time - Centered */}
-            <div className="mb-4 text-center">
-              <div className="text-xs" style={{ fontSize: `${fontSizes.xs}px` }}>
-                Print On {receiptData.printTime || "N/A"}
+            <div className="mb-2 text-center">
+              <div style={{ fontSize: `${fontSizes.xs}px` }}>
+                Print On {receiptData.printTime || "01/01/24 01:47"}
               </div>
             </div>
 
             {/* Barcode */}
-            <div className="mb-4 text-center">
-              <svg ref={barcodeRef} className="mx-auto" style={{ maxWidth: "100%" }}></svg>
+            <div className="mb-2 text-center">
+              <svg 
+                ref={barcodeRef} 
+                className="mx-auto" 
+                style={{ 
+                  maxWidth: "100%",
+                  display: "block",
+                  visibility: "visible",
+                  height: "60px"
+                }}
+              ></svg>
               <div
-                className="text-xs mt-2 font-mono"
-                style={{ letterSpacing: "1px", fontSize: `${fontSizes.xs}px` }}
+                className="mt-1 font-mono"
+                style={{ 
+                  letterSpacing: "1px", 
+                  fontSize: `${fontSizes.xs}px`,
+                  lineHeight: "1.2"
+                }}
               >
-                {receiptData.uniqueString || ""}
+                {receiptData.uniqueString || "123456789000000000000"}
               </div>
             </div>
 
             {/* Footer - Centered, Larger */}
-            <div className="text-center mt-4">
+            <div className="text-center mt-3">
               <div
-                className="text-base font-bold"
-                style={{ fontSize: `${fontSizes.base}px`, fontWeight: "bold" }}
+                className="font-bold"
+                style={{ 
+                  fontSize: `${fontSizes.base}px`, 
+                  fontWeight: "bold",
+                  lineHeight: "1.2"
+                }}
               >
                 For Amusement Only
               </div>
             </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="bg-white pb-6 px-6 flex justify-center gap-4 print:hidden">
-            <button
-              onClick={handlePrint}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-            >
-              Print
-            </button>
-            <button
-              onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Print Styles */}
       <style>{`
         @media print {
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          html, body {
+            width: 400px;
+            height: auto;
+            overflow: visible;
+            background: white;
+          }
           body * {
             visibility: hidden;
           }
           .receipt-container,
           .receipt-container * {
-            visibility: visible;
+            visibility: visible !important;
           }
           .receipt-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 400px;
-            max-width: 400px;
-            box-shadow: none;
-            margin: 0;
-            padding: 0;
-            border-radius: 0;
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 400px !important;
+            max-width: 400px !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            background: white !important;
           }
-          .print\\:hidden {
-            display: none !important;
+          .receipt-container svg {
+            visibility: visible !important;
+            display: block !important;
+            max-width: 100% !important;
+          }
+          .receipt-container > div {
+            padding: 12px !important;
+            background: white !important;
           }
           @page {
-            size: auto;
+            size: 400px auto;
             margin: 0;
+            padding: 0;
           }
         }
       `}</style>
