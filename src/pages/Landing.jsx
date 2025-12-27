@@ -1455,8 +1455,18 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         </div>
 
         {/* Claim icon - Button to claim rewards/winnings */}
-        <div className="flex items-center gap-2">
-          {showClaimInput ? (
+        <div className="relative flex items-center justify-center">
+          <img
+            src={claimIcon}
+            alt="claimIcon"
+            className="h-12 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => {
+              playAllBtnSound();
+              setShowClaimInput(true);
+              setClaimBarcode("");
+            }}
+          />
+          {showClaimInput && (
             <input
               type="text"
               value={claimBarcode}
@@ -1472,22 +1482,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   setShowClaimInput(false);
                 }
               }}
-              placeholder="Enter barcode number"
-              className="px-2 py-0.5 text-white rounded border border-white/30 bg-transparent focus:outline-none focus:ring-1 focus:ring-yellow-400 text-xs placeholder:text-white/70"
-              style={{ width: "150px", height: "32px" }}
+              placeholder="Enter barcode"
+              className="absolute left-2/3 top-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-black focus:outline-none text-xs placeholder:text-white/70 z-10"
+              style={{ width: "85px", height: "18px" }}
               disabled={isCheckingClaim}
               autoFocus
-            />
-          ) : (
-            <img
-              src={claimIcon}
-              alt="claimIcon"
-              className="h-12 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => {
-                playAllBtnSound();
-                setShowClaimInput(true);
-                setClaimBarcode("");
-              }}
             />
           )}
         </div>
