@@ -210,7 +210,7 @@ const Transactions = ({ onClose }) => {
 
   return (
     <div
-      className="min-h-screen w-full relative overflow-hidden"
+      className="fixed inset-0 z-50 w-full h-full overflow-auto"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "cover",
@@ -288,7 +288,7 @@ const Transactions = ({ onClose }) => {
 
       {/* Main Content Area - Yellow to Orange Gradient */}
       <div
-        className="flex flex-col items-center min-h-[calc(100vh-4rem)] p-8"
+        className="flex flex-col items-center min-h-screen p-8"
         style={{
           background: "linear-gradient(to bottom, #FFD700, #FF8C00)",
         }}

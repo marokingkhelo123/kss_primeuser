@@ -75,30 +75,26 @@ function App() {
     return <Login onLogin={handleLogin} />;
   }
 
-  // Show Reset Password page if requested
-  if (showResetPassword) {
-    return <ResetPassword onClose={handleCloseResetPassword} />;
-  }
-
-  // Show Transactions page if requested
-  if (showTransactions) {
-    return <Transactions onClose={handleCloseTransactions} />;
-  }
-
-  // Show My Account page if requested
-  if (showMyAccount) {
-    return (
-      <MyAccount
-        onClose={handleCloseMyAccount}
-        onLogout={handleLogout}
-        onShowTransactions={handleShowTransactions}
-        onShowResetPassword={handleShowResetPassword}
-      />
-    );
-  }
-
-  // Show landing page after login
-  return <Landing onLogout={handleLogout} onShowMyAccount={handleShowMyAccount} />;
+  // Show landing page as base, with components overlaid on top
+  return (
+    <>
+      <Landing onLogout={handleLogout} onShowMyAccount={handleShowMyAccount} />
+      {showMyAccount && (
+        <MyAccount
+          onClose={handleCloseMyAccount}
+          onLogout={handleLogout}
+          onShowTransactions={handleShowTransactions}
+          onShowResetPassword={handleShowResetPassword}
+        />
+      )}
+      {showTransactions && (
+        <Transactions onClose={handleCloseTransactions} />
+      )}
+      {showResetPassword && (
+        <ResetPassword onClose={handleCloseResetPassword} />
+      )}
+    </>
+  );
 }
 
 export default App;

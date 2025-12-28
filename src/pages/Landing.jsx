@@ -141,9 +141,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const lastGameIdRef = useRef(null); // Track last game ID to detect new games
   const lastFetchTimeRef = useRef(null); // Track last fetch time to throttle API calls
   const slotMachineTimeoutsRef = useRef([]); // Track timeouts to clear them
-  const winnerPollingIntervalRef = useRef(null); // Track winner polling interval
+  const winnerPollingIntervalRef = useRef(null); // Track winner polling interval (deprecated, kept for cleanup)
   const lastWinnerGameIdRef = useRef(null); // Track game ID where winner was found
   const slotMachineAudioRef = useRef(null); // Track slot machine audio to stop it when needed
+  const winnerDataRef = useRef(null); // Store winner data when received from API
+  const isApiCallInProgressRef = useRef(false); // Track if API call is in progress
+  const apiCallTimeoutRef = useRef(null); // Track timeout for sequential API calls
+  const hasMadeFirstApiCallRef = useRef(false); // Track if first API call at 5 seconds has been made
 
   // Slot machine image arrays
   const picSmImages = [
@@ -267,7 +271,60 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     setSelectedButton([]);
   };
 
-  // Helper function to animate slot machine to winning result
+  // Helper function to store winner data and prepare for progressive display
+  const storeWinnerData = (winningNumber, winningMultiplier, gameId) => {
+    const winningNumberNumeric = convertWinningNumberToNumeric(winningNumber);
+    const pictureIndex = winningNumberNumeric ? winningNumberNumeric - 1 : 0;
+    const numberIndex = winningNumberNumeric ? winningNumberNumeric - 1 : 0;
+    const multiplierIndex = Math.min(Math.max(winningMultiplier - 1, 0), 8);
+
+    winnerDataRef.current = {
+      pictureIndex,
+      numberIndex,
+      multiplierIndex,
+      gameId,
+    };
+
+    // Mark this game as having a winner
+    if (gameId) {
+      lastWinnerGameIdRef.current = gameId;
+    }
+  };
+
+  // Helper function to progressively display winner in last 3 seconds
+  const displayProgressiveWinner = (seconds) => {
+    if (!winnerDataRef.current) return;
+
+    const { pictureIndex, numberIndex, multiplierIndex } = winnerDataRef.current;
+
+    if (seconds === 3) {
+      // Show first value (picture reel) at 3rd second - stop picture reel, keep others spinning
+      setSlotMachineState((prev) => ({
+        pictureReel: { currentIndex: pictureIndex, isSpinning: false, targetIndex: pictureIndex },
+        numberReel: { ...prev.numberReel, isSpinning: true, targetIndex: null },
+        multiplierReel: { ...prev.multiplierReel, isSpinning: true, targetIndex: null },
+      }));
+    } else if (seconds === 2) {
+      // Show second value (number reel) at 2nd second - stop number reel, keep multiplier spinning
+      setSlotMachineState((prev) => ({
+        pictureReel: { ...prev.pictureReel, isSpinning: false, targetIndex: pictureIndex },
+        numberReel: { currentIndex: numberIndex, isSpinning: false, targetIndex: numberIndex },
+        multiplierReel: { ...prev.multiplierReel, isSpinning: true, targetIndex: null },
+      }));
+    } else if (seconds === 1) {
+      // Show last value (multiplier reel) at 1st second - stop all reels
+      setSlotMachineState({
+        pictureReel: { currentIndex: pictureIndex, isSpinning: false, targetIndex: pictureIndex },
+        numberReel: { currentIndex: numberIndex, isSpinning: false, targetIndex: numberIndex },
+        multiplierReel: { currentIndex: multiplierIndex, isSpinning: false, targetIndex: multiplierIndex },
+      });
+      // Stop spinning sound and play win result sound when all reels have stopped
+      stopSlotMachineSound();
+      playWinResultSound();
+    }
+  };
+
+  // Helper function to animate slot machine to winning result (legacy function, kept for compatibility)
   const animateSlotMachineToResult = (winningNumber, winningMultiplier, isFromPolling = false, gameId = null) => {
     const winningNumberNumeric = convertWinningNumberToNumeric(winningNumber);
     const pictureIndex = winningNumberNumeric ? winningNumberNumeric - 1 : 0;
@@ -516,6 +573,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         time: formattedTime,
         bettingNumbers,
         points,
+        ticketCode: bet.uniqueString || "--",
       };
     });
   };
@@ -1019,6 +1077,58 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
   };
 
+  // Sequential API call function to check for winner (simple flow: one call at a time)
+  const checkWinnerSequentially = async (currentGameId) => {
+    // Don't make another call if one is in progress or if we already have winner data
+    if (isApiCallInProgressRef.current || winnerDataRef.current) {
+      return false; // Return false to indicate no winner found or call not made
+    }
+
+    isApiCallInProgressRef.current = true;
+
+    try {
+      const response = await api.get("/users/getLiveGame");
+      if (response.data && response.data.data) {
+        const gameData = response.data.data;
+        const gameId = gameData.gameId || gameData._id;
+        
+        // Only process if it's the same game
+        if (gameId === currentGameId && gameData.winning_number && gameData.winning_x) {
+          // Winner found! Store the data and stop making more calls
+          storeWinnerData(gameData.winning_number, gameData.winning_x, gameId);
+          setCurrentGame(gameData);
+          isApiCallInProgressRef.current = false;
+          return true; // Return true to indicate winner found
+        }
+      }
+    } catch (error) {
+      console.error("Error checking for winner:", error);
+    }
+
+    // If we didn't get a winner, allow another call after response is processed
+    isApiCallInProgressRef.current = false;
+    return false; // Return false to indicate no winner found
+  };
+
+  // Recursive function to make sequential API calls until winner is found
+  const makeSequentialApiCalls = async (currentGameId) => {
+    // Check if we should stop (winner found)
+    if (winnerDataRef.current) {
+      return; // Winner found, stop making calls
+    }
+
+    const winnerFound = await checkWinnerSequentially(currentGameId);
+    
+    // If winner not found, wait then make another call (useEffect cleanup will stop this if outside valid range)
+    if (!winnerFound && !winnerDataRef.current) {
+      apiCallTimeoutRef.current = setTimeout(() => {
+        // Clear the timeout ref and make another call
+        apiCallTimeoutRef.current = null;
+        makeSequentialApiCalls(currentGameId);
+      }, 1000);
+    }
+  };
+
   // Fetch latest games data
   const getLatestGames = async () => {
     try {
@@ -1161,6 +1271,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
       // Reset winner tracking for new game
       lastWinnerGameIdRef.current = null;
+      winnerDataRef.current = null;
+      hasMadeFirstApiCallRef.current = false;
+      isApiCallInProgressRef.current = false;
+      if (apiCallTimeoutRef.current) {
+        clearTimeout(apiCallTimeoutRef.current);
+        apiCallTimeoutRef.current = null;
+      }
 
       // Fetch latest games and clear betting
       getLatestGames();
@@ -1263,7 +1380,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     };
   }, [currentGame]);
 
-  // Handle slot machine spinning in last 20 seconds and winner polling
+  // Handle slot machine spinning in last 20 seconds
   useEffect(() => {
     if (!currentGame) return;
 
@@ -1284,41 +1401,23 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         }));
         // Play slot machine spinning sound
         playSlotMachineSound();
-
-        // Start polling for winner if not already polling
-        if (!winnerPollingIntervalRef.current) {
-          winnerPollingIntervalRef.current = setInterval(async () => {
-            try {
-              const response = await api.get("/users/getLiveGame");
-              if (response.data && response.data.data) {
-                const gameData = response.data.data;
-                const gameId = gameData.gameId || gameData._id;
-                
-                // Only process if it's the same game
-                if (gameId === currentGameId && gameData.winning_number && gameData.winning_x) {
-                  // Winner found! Stop the machine
-                  setCurrentGame(gameData);
-                  animateSlotMachineToResult(gameData.winning_number, gameData.winning_x, true, gameId);
-                }
-              }
-            } catch (error) {
-              console.error("Error polling for winner:", error);
-            }
-          }, 1000); // Poll every second
-        }
       } else {
-        // We already have a winner for this game - stop polling if active
-        if (winnerPollingIntervalRef.current) {
-          clearInterval(winnerPollingIntervalRef.current);
-          winnerPollingIntervalRef.current = null;
+        // We already have a winner for this game - clear any API timeouts
+        if (apiCallTimeoutRef.current) {
+          clearTimeout(apiCallTimeoutRef.current);
+          apiCallTimeoutRef.current = null;
         }
       }
     } else {
-      // Outside last 20 seconds - stop polling if active
-      if (winnerPollingIntervalRef.current) {
-        clearInterval(winnerPollingIntervalRef.current);
-        winnerPollingIntervalRef.current = null;
+      // Outside last 20 seconds - clear any API timeouts and reset flags
+      if (apiCallTimeoutRef.current) {
+        clearTimeout(apiCallTimeoutRef.current);
+        apiCallTimeoutRef.current = null;
       }
+      // Reset winner data and flags when outside last 20 seconds
+      winnerDataRef.current = null;
+      hasMadeFirstApiCallRef.current = false;
+      isApiCallInProgressRef.current = false;
 
       // If we have a winner for the current game, keep it displayed (machine should already be stopped)
       // If we don't have a winner and we're outside last 20 seconds, ensure machine is stopped
@@ -1335,13 +1434,59 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
     // Cleanup on unmount or when game changes
     return () => {
-      if (winnerPollingIntervalRef.current) {
-        clearInterval(winnerPollingIntervalRef.current);
-        winnerPollingIntervalRef.current = null;
+      if (apiCallTimeoutRef.current) {
+        clearTimeout(apiCallTimeoutRef.current);
+        apiCallTimeoutRef.current = null;
       }
       // Stop slot machine sound on cleanup
       stopSlotMachineSound();
     };
+  }, [remainingSeconds, currentGame]);
+
+  // Sequential API calls for winner - simple flow: first call at 5 seconds, then wait and retry if needed
+  useEffect(() => {
+    if (!currentGame) return;
+
+    const currentGameId = currentGame.gameId || currentGame._id;
+    const hasWinnerForCurrentGame = lastWinnerGameIdRef.current === currentGameId && winnerDataRef.current;
+    const isLast20Seconds = remainingSeconds > 0 && remainingSeconds <= 20;
+
+    // Stop API calls if we're outside last 20 seconds, have a winner, or past 3 seconds
+    if (!isLast20Seconds || hasWinnerForCurrentGame || remainingSeconds <= 3) {
+      // Clear any pending timeout if we're outside valid range
+      if (apiCallTimeoutRef.current) {
+        clearTimeout(apiCallTimeoutRef.current);
+        apiCallTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    // First API call at exactly 5th second - start the sequential calling process
+    if (remainingSeconds === 5 && !hasMadeFirstApiCallRef.current && !winnerDataRef.current) {
+      hasMadeFirstApiCallRef.current = true;
+      makeSequentialApiCalls(currentGameId);
+    }
+
+    // Cleanup
+    return () => {
+      if (apiCallTimeoutRef.current) {
+        clearTimeout(apiCallTimeoutRef.current);
+        apiCallTimeoutRef.current = null;
+      }
+    };
+  }, [remainingSeconds, currentGame]);
+
+  // Handle progressive winner display in last 3 seconds
+  useEffect(() => {
+    if (!currentGame || !winnerDataRef.current) return;
+
+    const currentGameId = currentGame.gameId || currentGame._id;
+    const isWinnerForCurrentGame = winnerDataRef.current.gameId === currentGameId;
+    
+    // Only display progressively if we have winner data for current game
+    if (isWinnerForCurrentGame && remainingSeconds > 0 && remainingSeconds <= 3) {
+      displayProgressiveWinner(remainingSeconds);
+    }
   }, [remainingSeconds, currentGame]);
 
   // Auto-submit claim barcode when scanning (without pressing Enter)
@@ -2446,18 +2591,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                       Betting Number
                     </th>
                     <th className="text-left py-3 px-4 font-bold">Points</th>
+                    <th className="text-left py-3 px-4 font-bold">Ticket Code</th>
                   </tr>
                 </thead>
                 <tbody>
                   {isInfoLoading ? (
                     <tr className="border-b border-blue-400">
-                      <td className="py-3 px-4 text-center" colSpan={4}>
+                      <td className="py-3 px-4 text-center" colSpan={5}>
                         Loading...
                       </td>
                     </tr>
                   ) : infoData.length === 0 ? (
                     <tr className="border-b border-blue-400">
-                      <td className="py-3 px-4 text-center" colSpan={4}>
+                      <td className="py-3 px-4 text-center" colSpan={5}>
                         No information available yet.
                       </td>
                     </tr>
@@ -2470,6 +2616,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                           {row.bettingNumbers.join(", ")}
                         </td>
                         <td className="py-3 px-4">{row.points}</td>
+                        <td className="py-3 px-4">{row.ticketCode}</td>
                       </tr>
                     ))
                   )}
