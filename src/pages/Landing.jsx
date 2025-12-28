@@ -1325,8 +1325,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     if (!lastGameIdRef.current && currentGameId) {
       lastGameIdRef.current = currentGameId;
       if (hasWinningResult) {
-        // If there's already a winner, show it and mark as processed
-        animateSlotMachineToResult(currentGame.winning_number, currentGame.winning_x, false, currentGameId);
+        // If there's already a winner, store it for progressive display
+        storeWinnerData(currentGame.winning_number, currentGame.winning_x, currentGameId);
+        // Only animate immediately if we're outside the last 20 seconds
+        // If we're in the last 20 seconds, let the progressive display handle it
+        const isLast20Seconds = remainingSeconds > 0 && remainingSeconds <= 20;
+        if (!isLast20Seconds) {
+          animateSlotMachineToResult(currentGame.winning_number, currentGame.winning_x, false, currentGameId);
+        }
       } else {
         // No winner yet, initialize to stopped state (will spin when last 20 seconds)
         setSlotMachineState({
@@ -1339,9 +1345,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
     // Handle winning result - only animate if we haven't already shown this winner
     if (hasWinningResult && lastWinnerGameIdRef.current !== currentGameId) {
-      animateSlotMachineToResult(currentGame.winning_number, currentGame.winning_x, false, currentGameId);
+      // Store winner data for progressive display (needed for both automated and manual winners)
+      storeWinnerData(currentGame.winning_number, currentGame.winning_x, currentGameId);
+      
+      // Only animate immediately if we're outside the last 20 seconds
+      // If we're in the last 20 seconds, let the progressive display handle it
+      const isLast20Seconds = remainingSeconds > 0 && remainingSeconds <= 20;
+      if (!isLast20Seconds) {
+        animateSlotMachineToResult(currentGame.winning_number, currentGame.winning_x, false, currentGameId);
+      }
     }
-  }, [currentGame]);
+  }, [currentGame, remainingSeconds]);
 
   // Update running game time when currentGame changes
   useEffect(() => {
