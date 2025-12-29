@@ -88,8 +88,16 @@ const Receipt = ({ receiptData, onClose }) => {
       
       // Wait longer to ensure barcode SVG is fully rendered
       setTimeout(() => {
-        window.print();
-        // Close after print dialog is shown
+        if (window.electronAPI?.printCurrent) {
+          window.electronAPI.printCurrent().catch((error) => {
+            console.error("Silent print failed:", error);
+          });
+        } else {
+          // Fallback for non-Electron environments
+          window.print();
+        }
+
+        // Close after print is initiated
         setTimeout(() => {
           if (onClose) onClose();
         }, 100);

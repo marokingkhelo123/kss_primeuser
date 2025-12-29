@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -9,6 +9,8 @@ const isDev = !app.isPackaged
 const devServerURL = process.env.ELECTRON_DEV_SERVER_URL || 'http://localhost:3001'
 
 const createWindow = () => {
+  const preloadPath = path.join(__dirname, 'preload.js')
+
   const mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -18,6 +20,7 @@ const createWindow = () => {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      preload: preloadPath,
     },
   })
 
@@ -40,6 +43,32 @@ const createWindow = () => {
     return { action: 'deny' }
   })
 }
+
+ipcMain.handle('print-current', async (event, options = {}) => {
+  const contents = event.sender
+  const printers = await contents.getPrintersAsync()
+  const deviceName =
+    options.deviceName ||
+    printers.find((printer) => printer.isDefault)?.name ||
+    undefined
+
+  const printOptions = {
+    silent: true,
+    printBackground: true,
+    deviceName,
+    ...options,
+  }
+
+  return new Promise((resolve, reject) => {
+    contents.print(printOptions, (success, errorType) => {
+      if (success) {
+        resolve(true)
+      } else {
+        reject(new Error(errorType || 'Print failed'))
+      }
+    })
+  })
+})
 
 app.whenReady().then(() => {
   app.setAppUserModelId('com.kssdesktop.primeuser')
