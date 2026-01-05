@@ -70,6 +70,57 @@ ipcMain.handle('print-current', async (event, options = {}) => {
   })
 })
 
+ipcMain.handle('print-receipt', async (event, receiptHTML) => {
+  return new Promise((resolve, reject) => {
+    const printWindow = new BrowserWindow({
+      width: 400,
+      height: 600,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+      },
+    })
+
+    // Load the receipt HTML
+    printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(receiptHTML)}`)
+
+    printWindow.webContents.once('did-finish-load', async () => {
+      try {
+        const printers = await printWindow.webContents.getPrintersAsync()
+        const deviceName =
+          printers.find((printer) => printer.isDefault)?.name || undefined
+
+        const printOptions = {
+          silent: true,
+          printBackground: true,
+          deviceName,
+        }
+
+        printWindow.webContents.print(printOptions, (success, errorType) => {
+          // Close the print window after printing
+          setTimeout(() => {
+            printWindow.close()
+          }, 100)
+
+          if (success) {
+            resolve(true)
+          } else {
+            reject(new Error(errorType || 'Print failed'))
+          }
+        })
+      } catch (error) {
+        printWindow.close()
+        reject(error)
+      }
+    })
+
+    printWindow.webContents.once('did-fail-load', () => {
+      printWindow.close()
+      reject(new Error('Failed to load receipt HTML'))
+    })
+  })
+})
+
 app.whenReady().then(() => {
   app.setAppUserModelId('com.kssdesktop.primeuser')
   createWindow()

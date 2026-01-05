@@ -70,6 +70,171 @@ const Receipt = ({ receiptData, onClose }) => {
     };
   }, [receiptData?.uniqueString]);
 
+  // Generate receipt HTML for printing
+  const generateReceiptHTML = (barcodeSVG) => {
+    const betDetails = formatBetDetails(receiptData?.betAmounts || {});
+    const betColumns = distributeBetsIntoColumns(betDetails);
+    const maxColumnLength = Math.max(...betColumns.map(col => col.length));
+
+    const fontSizes = {
+      king: 40,
+      sm: 18,
+      xs: 18,
+      base: 18,
+    };
+
+    // Generate bet rows HTML
+    const betRowsHTML = Array.from({ length: maxColumnLength })
+      .map((_, rowIndex) => {
+        const col1 = betColumns[0][rowIndex] ? `${betColumns[0][rowIndex].number} * ${betColumns[0][rowIndex].amount}` : "";
+        const col2 = betColumns[1][rowIndex] ? `${betColumns[1][rowIndex].number} * ${betColumns[1][rowIndex].amount}` : "";
+        const col3 = betColumns[2][rowIndex] ? `${betColumns[2][rowIndex].number} * ${betColumns[2][rowIndex].amount}` : "";
+        return `
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; padding: 1px 0; line-height: 1.3; font-size: ${fontSizes.xs}px;">
+            <div>${col1}</div>
+            <div>${col2}</div>
+            <div>${col3}</div>
+          </div>
+        `;
+      })
+      .join("");
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      width: 400px;
+      margin: 0 auto;
+      padding: 12px;
+      background: white;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .header h2 {
+      font-size: ${fontSizes.king}px;
+      font-weight: bold;
+      margin: 0;
+      line-height: 1.2;
+      color: black;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .info-left, .info-right {
+      font-size: ${fontSizes.sm}px;
+    }
+    .info-right {
+      text-align: right;
+    }
+    .bet-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 4px;
+      font-weight: bold;
+      font-size: ${fontSizes.xs}px;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+    .total {
+      font-weight: bold;
+      font-size: ${fontSizes.sm}px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .print-time {
+      text-align: center;
+      font-size: ${fontSizes.xs}px;
+      margin-bottom: 8px;
+    }
+    .barcode-container {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .barcode-svg {
+      max-width: 100%;
+      display: block;
+      margin: 0 auto;
+      height: 60px;
+    }
+    .barcode-text {
+      margin-top: 4px;
+      font-family: monospace;
+      letter-spacing: 1px;
+      font-size: ${fontSizes.xs}px;
+      line-height: 1.2;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 12px;
+      font-weight: bold;
+      font-size: ${fontSizes.base}px;
+      line-height: 1.2;
+    }
+    @page {
+      size: 400px auto;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>King</h2>
+  </div>
+  
+  <div class="info-row">
+    <div class="info-left">
+      <div><strong>KUID -</strong> ${receiptData.kuid || "0001"}</div>
+      <div><strong>Date</strong> ${receiptData.date || "01/01/2024"}</div>
+    </div>
+    <div class="info-right">
+      <div><strong>Oder No.</strong> ${receiptData.orderNumber || "0000001"}</div>
+      ${receiptData.drawTime ? `<div><strong>Draw Time -</strong> ${receiptData.drawTime}</div>` : ""}
+    </div>
+  </div>
+  
+  <div class="bet-header">
+    <div>Ac / Qt</div>
+    <div>Ac / Qt</div>
+    <div>Ac / Qt</div>
+  </div>
+  
+  ${betRowsHTML}
+  
+  <div class="total">
+    Total Pts - ${receiptData.totalBetPoints?.toFixed(2) || "0.00"}
+  </div>
+  
+  <div class="print-time">
+    Print On ${receiptData.printTime || "01/01/24 01:47"}
+  </div>
+  
+  <div class="barcode-container">
+    ${barcodeSVG || ""}
+    <div class="barcode-text">${receiptData.uniqueString || "123456789000000000000"}</div>
+  </div>
+  
+  <div class="footer">
+    For Amusement Only
+  </div>
+</body>
+</html>`;
+  };
+
   // Auto-print after barcode is ready
   useEffect(() => {
     if (!receiptData) return;
@@ -88,9 +253,17 @@ const Receipt = ({ receiptData, onClose }) => {
       
       // Wait longer to ensure barcode SVG is fully rendered
       setTimeout(() => {
-        if (window.electronAPI?.printCurrent) {
-          window.electronAPI.printCurrent().catch((error) => {
+        // Get the barcode SVG content
+        const barcodeSVG = barcodeRef.current?.outerHTML || "";
+        
+        // Generate the receipt HTML
+        const receiptHTML = generateReceiptHTML(barcodeSVG);
+        
+        if (window.electronAPI?.printReceipt) {
+          window.electronAPI.printReceipt(receiptHTML).catch((error) => {
             console.error("Silent print failed:", error);
+            // Fallback to regular print if Electron API fails
+            window.print();
           });
         } else {
           // Fallback for non-Electron environments
