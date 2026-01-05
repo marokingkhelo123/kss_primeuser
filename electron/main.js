@@ -73,7 +73,7 @@ ipcMain.handle('print-current', async (event, options = {}) => {
 ipcMain.handle('print-receipt', async (event, receiptHTML) => {
   return new Promise((resolve, reject) => {
     const printWindow = new BrowserWindow({
-      width: 400,
+      width: 302,  // 80mm ≈ 302px at 96 DPI
       height: 600,
       show: false,
       webPreferences: {
@@ -94,6 +94,7 @@ ipcMain.handle('print-receipt', async (event, receiptHTML) => {
           silent: true,
           printBackground: true,
           deviceName,
+          // Page size is handled by CSS @page rule in the HTML
         }
 
         printWindow.webContents.print(printOptions, (success, errorType) => {

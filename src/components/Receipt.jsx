@@ -111,7 +111,7 @@ const Receipt = ({ receiptData, onClose }) => {
     }
     body {
       font-family: Arial, sans-serif;
-      width: 400px;
+      width: 80mm;
       margin: 0 auto;
       padding: 12px;
       background: white;
@@ -185,7 +185,7 @@ const Receipt = ({ receiptData, onClose }) => {
       line-height: 1.2;
     }
     @page {
-      size: 400px auto;
+      size: 80mm auto;
       margin: 0;
       padding: 0;
     }
@@ -305,7 +305,7 @@ const Receipt = ({ receiptData, onClose }) => {
         style={{ 
           position: "absolute",
           left: "-9999px",
-          width: "400px",
+          width: "80mm",
           visibility: "hidden",
           display: "block"
         }}
@@ -316,7 +316,7 @@ const Receipt = ({ receiptData, onClose }) => {
             style={{ 
               fontFamily: "Arial, sans-serif",
               width: "100%",
-              maxWidth: "400px",
+              maxWidth: "80mm",
               margin: "0 auto"
             }}
           >
@@ -468,7 +468,7 @@ const Receipt = ({ receiptData, onClose }) => {
             box-sizing: border-box;
           }
           html, body {
-            width: 400px;
+            width: 80mm;
             height: auto;
             overflow: visible;
             background: white;
@@ -484,8 +484,8 @@ const Receipt = ({ receiptData, onClose }) => {
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
-            width: 400px !important;
-            max-width: 400px !important;
+            width: 80mm !important;
+            max-width: 80mm !important;
             box-shadow: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -502,7 +502,7 @@ const Receipt = ({ receiptData, onClose }) => {
             background: white !important;
           }
           @page {
-            size: 400px auto;
+            size: 80mm auto;
             margin: 0;
             padding: 0;
           }
