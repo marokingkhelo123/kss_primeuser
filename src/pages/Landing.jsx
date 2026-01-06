@@ -130,7 +130,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const [showReceipt, setShowReceipt] = useState(false); // Show receipt popup
   const [receiptData, setReceiptData] = useState(null); // Receipt data from backend
   // Claim barcode checking states
-  const [showClaimInput, setShowClaimInput] = useState(false); // Control input visibility
+  const [showClaimInput, setShowClaimInput] = useState(true); // Control input visibility
   const [claimBarcode, setClaimBarcode] = useState(""); // Store the input value
   const [isCheckingClaim, setIsCheckingClaim] = useState(false); // Loading state
   const [showAttentionPopup, setShowAttentionPopup] = useState(false); // AttentionPopup visibility
@@ -1631,7 +1631,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           <img
             src={claimIcon}
             alt="claimIcon"
-            className="h-12 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            className="h-12 w-auto object-contain cursor-pointer"
             onClick={() => {
               playAllBtnSound();
               setShowClaimInput(true);
@@ -1648,15 +1648,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   handleClaimCheck();
                 }
               }}
-              onBlur={() => {
-                // Close input if empty when clicking outside
-                if (!claimBarcode.trim() && !isCheckingClaim) {
-                  setShowClaimInput(false);
-                }
-              }}
               placeholder="Enter barcode"
-              className="absolute left-2/3 top-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-black focus:outline-none text-xs placeholder:text-white/70 z-10"
-              style={{ width: "85px", height: "18px" }}
+              className="absolute left-[62%] top-[55%] transform -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-black focus:outline-none text-xs placeholder:text-black/70 z-10"
+              style={{ width: "60%", height: "45%" }}
               disabled={isCheckingClaim}
               autoFocus
             />
