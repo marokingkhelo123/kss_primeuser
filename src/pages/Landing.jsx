@@ -121,6 +121,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const [selectedButton, setSelectedButton] = useState([]); // Array to support multiple button selections: 'red', 'black', 'odd', 'even', 'arrow1-7'
   const [lastBetValues, setLastBetValues] = useState(null); // Store last bet values for REPEAT functionality
   const [isBettingDisabled, setIsBettingDisabled] = useState(false); // Track if betting is disabled (last 20 seconds)
+  const [isBettingInProgress, setIsBettingInProgress] = useState(false); // Track if bet request is in progress
   const [remainingSeconds, setRemainingSeconds] = useState(0); // Track remaining seconds for countdown
   const [infoData, setInfoData] = useState([]); // Information popup data from backend
   const [isInfoLoading, setIsInfoLoading] = useState(false); // Loading state for information popup
@@ -760,6 +761,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   // Handle BET button click
   const handleBetClick = async () => {
     playAllBtnSound();
+    // Check if a bet request is already in progress
+    if (isBettingInProgress) {
+      toast.error("Please wait for the previous bet to complete.");
+      return;
+    }
     // Check if betting is disabled (last 20 seconds)
     if (isBettingDisabled) {
       toast.error("Betting is disabled in the last 20 seconds of the round. Please wait for the next round.");
@@ -795,6 +801,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       return;
     }
 
+    // Set betting in progress to prevent duplicate requests
+    setIsBettingInProgress(true);
+
     try {
       // Convert betValues to backend format
       const betAmounts = convertBetValuesToBackendFormat(betValues);
@@ -808,6 +817,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       // Check if user has enough balance
       if (totalBetAmount > balance) {
         toast.error(`Insufficient balance. You have ${balance} points but need ${totalBetAmount} points.`);
+        setIsBettingInProgress(false);
         return;
       }
 
@@ -886,6 +896,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         error.message ||
         "Failed to place bet. Please try again.";
       toast.error(errorMessage);
+    } finally {
+      // Reset betting in progress state after request completes
+      setIsBettingInProgress(false);
     }
   };
 
@@ -2475,11 +2488,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-36 h-36 transition-transform ${
-                  isBettingDisabled 
+                  isBettingDisabled || isBettingInProgress
                     ? "opacity-50 cursor-not-allowed" 
                     : "cursor-pointer hover:scale-110"
                 }`}
-                onClick={() => !isBettingDisabled && handleBetClick()}
+                onClick={() => !isBettingDisabled && !isBettingInProgress && handleBetClick()}
               >
                 <img
                   src={betButton}
