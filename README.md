@@ -194,6 +194,128 @@ For issues or questions:
 
 ---
 
+## Creating Desktop App with Electron
+
+This application can be packaged as a standalone desktop application for Windows using Electron.
+
+### Prerequisites for Desktop Build
+
+- **Node.js** (v16 or higher)
+- **npm** (comes with Node.js)
+- **Windows OS** (for Windows builds)
+
+### Development with Electron
+
+To run the app in Electron during development:
+
+```bash
+npm run electron:dev
+```
+
+This command will:
+1. Start the Vite development server
+2. Wait for the server to be ready
+3. Launch the Electron app connected to the dev server
+
+Alternatively, you can run them separately:
+
+```bash
+# Terminal 1: Start Vite dev server
+npm run dev
+
+# Terminal 2: Start Electron (after dev server is running)
+npm run electron
+```
+
+**Note**: Make sure to set `ELECTRON_DEV_SERVER_URL` environment variable if your dev server runs on a different port:
+```bash
+ELECTRON_DEV_SERVER_URL=http://localhost:5173 npm run electron
+```
+
+### Building Desktop Application
+
+To create a distributable Windows desktop application:
+
+1. **Build the web application first**:
+   ```bash
+   npm run build
+   ```
+   This creates the production build in the `dist/` folder.
+
+2. **Package the Electron app**:
+   ```bash
+   npm run electron:build
+   ```
+   This will:
+   - Build the web app (if not already built)
+   - Package everything into a Windows installer using electron-builder
+   - Create an NSIS installer in the `release/` directory
+
+### Build Output
+
+After running `npm run electron:build`, you'll find:
+
+- **Installer**: `release/KSS Desktop Setup x.x.x.exe` - Windows installer
+- **Unpacked**: `release/win-unpacked/` - Unpacked application files
+
+### Electron Configuration
+
+The Electron configuration is defined in `package.json` under the `build` section:
+
+- **App ID**: `com.kssdesktop.primeuser`
+- **Product Name**: `KSS Desktop`
+- **Output Directory**: `release/`
+- **Target Platform**: Windows x64
+- **Installer Type**: NSIS
+
+### Electron Main Process
+
+The main Electron process is located in `electron/main.js` and handles:
+- Window creation and management
+- Loading the web app (dev server or built files)
+- Print functionality for receipts
+- External link handling
+
+### Preload Script
+
+The `electron/preload.js` file provides secure communication between the renderer process (web app) and the main process, exposing safe APIs for printing and other desktop features.
+
+### Customizing the Build
+
+To customize the build (icon, installer options, etc.), modify the `build` section in `package.json` or create an `electron-builder.yml` file. Common customizations:
+
+- **App Icon**: Add icon files and reference them in the build config
+- **Installer Options**: Customize NSIS installer behavior
+- **File Associations**: Add file type associations
+- **Auto-updater**: Configure automatic updates
+
+### Troubleshooting Desktop Build
+
+**Build fails with "electron-builder not found"**:
+```bash
+npm install --save-dev electron-builder
+```
+
+**App doesn't load in Electron**:
+- Ensure `npm run build` completed successfully
+- Check that `dist/index.html` exists
+- Verify the `main` field in `package.json` points to `electron/main.js`
+
+**Installer creation fails**:
+- Ensure you have sufficient disk space
+- Check Windows permissions
+- Verify NSIS is available (electron-builder includes it)
+
+**App window is blank**:
+- Check Electron console for errors (DevTools should open automatically in dev mode)
+- Verify the build output path in `electron/main.js` matches your `dist/` folder structure
+
+### Distribution
+
+Once built, distribute the installer file (`KSS Desktop Setup x.x.x.exe`) to end users. They can install it like any other Windows application.
+
+---
+
 **Last Updated**: November 2024
 **Version**: 1.0.0
 
