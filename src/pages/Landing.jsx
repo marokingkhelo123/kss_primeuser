@@ -117,7 +117,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     bet11: "",
     bet12: "",
   });
-  const [selectedBettingNumber, setSelectedBettingNumber] = useState(null);
+  const [selectedBettingNumber, setSelectedBettingNumber] = useState([]); // Array to support multiple number selections (1-12)
   const [selectedButton, setSelectedButton] = useState([]); // Array to support multiple button selections: 'red', 'black', 'odd', 'even', 'arrow1-7'
   const [lastBetValues, setLastBetValues] = useState(null); // Store last bet values for REPEAT functionality
   const [isBettingDisabled, setIsBettingDisabled] = useState(false); // Track if betting is disabled (last 20 seconds)
@@ -268,7 +268,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
   // Helper function to clear all selections
   const clearAllSelections = () => {
-    setSelectedBettingNumber(null);
+    setSelectedBettingNumber([]);
     setSelectedButton([]);
   };
 
@@ -409,7 +409,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
   // Helper function to check if a betting number should be highlighted
   const isBettingNumberHighlighted = (number) => {
-    if (selectedBettingNumber === number) return true;
+    // Check if number is in the selected array
+    if (selectedBettingNumber && selectedBettingNumber.includes(number)) return true;
     if (!selectedButton || selectedButton.length === 0) return false;
     const betKey = getBettingKey(number);
     // Check if any selected button includes this bet key
@@ -432,17 +433,25 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         return [...prevArray, buttonType];
       }
     });
-    setSelectedBettingNumber(null);
+    setSelectedBettingNumber([]);
   };
 
-  // Helper function to handle betting number selection
+  // Helper function to handle betting number selection (toggle: add if not selected, remove if already selected)
   const handleBettingNumberSelection = (number) => {
     playAllBtnSound();
     if (isBettingDisabled) {
       toast.error("Betting is disabled in the last 20 seconds of the round.");
       return;
     }
-    setSelectedBettingNumber(number);
+    // Toggle number selection: if already selected, remove it; otherwise add it
+    setSelectedBettingNumber(prev => {
+      const prevArray = prev || [];
+      if (prevArray.includes(number)) {
+        return prevArray.filter(num => num !== number);
+      } else {
+        return [...prevArray, number];
+      }
+    });
     setSelectedButton([]);
   };
 
@@ -471,18 +480,71 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       return;
     }
 
-    // If a specific betting number is selected, add coin to that bet
-    if (selectedBettingNumber !== null) {
-      const bettingKey = getBettingKey(selectedBettingNumber);
-      if (bettingKey) {
-        const currentValue = betValues[bettingKey] || "";
-        const currentNumber = currentValue === "" ? 0 : Number(currentValue);
-        setBetValues({
-          ...betValues,
-          [bettingKey]: (currentNumber + coinValue).toString(),
-        });
-      }
+    // If specific betting numbers are selected, add coin to all selected bets
+    if (selectedBettingNumber && selectedBettingNumber.length > 0) {
+      const updatedBetValues = { ...betValues };
+      selectedBettingNumber.forEach((number) => {
+        const bettingKey = getBettingKey(number);
+        if (bettingKey) {
+          const currentValue = updatedBetValues[bettingKey] || "";
+          const currentNumber = currentValue === "" ? 0 : Number(currentValue);
+          updatedBetValues[bettingKey] = (currentNumber + coinValue).toString();
+        }
+      });
+      setBetValues(updatedBetValues);
     }
+  };
+
+  // Helper function to handle bet value changes with validation (must be multiple of 10)
+  const handleBetValueChange = (betKey, value) => {
+    if (isBettingDisabled) {
+      toast.error("Betting is disabled in the last 20 seconds of the round.");
+      // Reset to empty value
+      setBetValues((prev) => ({ ...prev, [betKey]: "" }));
+      return;
+    }
+
+    // Allow empty string for clearing the input
+    if (value === "" || value === null || value === undefined) {
+      setBetValues((prev) => ({ ...prev, [betKey]: "" }));
+      return;
+    }
+
+    // Convert to number
+    const numValue = Number(value);
+
+    // Check if it's a valid number
+    if (isNaN(numValue)) {
+      toast.error("Please enter a valid number.");
+      // Reset to empty
+      setBetValues((prev) => ({ ...prev, [betKey]: "" }));
+      return;
+    }
+
+    // Check if it's zero - treat as empty
+    if (numValue === 0) {
+      setBetValues((prev) => ({ ...prev, [betKey]: "" }));
+      return;
+    }
+
+    // Check if it's not negative
+    if (numValue < 0) {
+      toast.error("Bet amount cannot be negative.");
+      // Reset to empty
+      setBetValues((prev) => ({ ...prev, [betKey]: "" }));
+      return;
+    }
+
+    // Check if it's a multiple of 10
+    if (numValue % 10 !== 0) {
+      toast.error("Bet amount must be a multiple of 10.");
+      // Reset to empty
+      setBetValues((prev) => ({ ...prev, [betKey]: "" }));
+      return;
+    }
+
+    // Update the bet value if valid
+    setBetValues((prev) => ({ ...prev, [betKey]: value.toString() }));
   };
 
   // Fetch user balance from API
@@ -1766,6 +1828,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                       onChange={(e) =>
                         !isBettingDisabled && setBetValues({ ...betValues, bet1: e.target.value })
                       }
+                      onBlur={(e) => handleBetValueChange("bet1", e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.target.blur();
+                        }
+                      }}
                       className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0"
                       onClick={(e) => e.stopPropagation()}
@@ -1811,6 +1879,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                       onChange={(e) =>
                         !isBettingDisabled && setBetValues({ ...betValues, bet2: e.target.value })
                       }
+                      onBlur={(e) => handleBetValueChange("bet2", e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.target.blur();
+                        }
+                      }}
                       className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0"
                       onClick={(e) => e.stopPropagation()}
@@ -1856,6 +1930,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                       onChange={(e) =>
                         !isBettingDisabled && setBetValues({ ...betValues, bet3: e.target.value })
                       }
+                      onBlur={(e) => handleBetValueChange("bet3", e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.target.blur();
+                        }
+                      }}
                       className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0"
                       onClick={(e) => e.stopPropagation()}
@@ -1901,6 +1981,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                       onChange={(e) =>
                         !isBettingDisabled && setBetValues({ ...betValues, bet4: e.target.value })
                       }
+                      onBlur={(e) => handleBetValueChange("bet4", e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.target.blur();
+                        }
+                      }}
                       className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0"
                       onClick={(e) => e.stopPropagation()}
@@ -1933,6 +2019,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     onChange={(e) =>
                       !isBettingDisabled && setBetValues({ ...betValues, bet5: e.target.value })
                     }
+                    onBlur={(e) => handleBetValueChange("bet5", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
                     className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                     onClick={(e) => e.stopPropagation()}
@@ -1964,6 +2056,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     onChange={(e) =>
                       !isBettingDisabled && setBetValues({ ...betValues, bet6: e.target.value })
                     }
+                    onBlur={(e) => handleBetValueChange("bet6", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
                     className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                     onClick={(e) => e.stopPropagation()}
@@ -1995,6 +2093,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     onChange={(e) =>
                       !isBettingDisabled && setBetValues({ ...betValues, bet7: e.target.value })
                     }
+                    onBlur={(e) => handleBetValueChange("bet7", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
                     className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                     onClick={(e) => e.stopPropagation()}
@@ -2026,6 +2130,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     onChange={(e) =>
                       !isBettingDisabled && setBetValues({ ...betValues, bet8: e.target.value })
                     }
+                    onBlur={(e) => handleBetValueChange("bet8", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
                     className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                     onClick={(e) => e.stopPropagation()}
@@ -2057,6 +2167,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     onChange={(e) =>
                       !isBettingDisabled && setBetValues({ ...betValues, bet9: e.target.value })
                     }
+                    onBlur={(e) => handleBetValueChange("bet9", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
                     className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                     onClick={(e) => e.stopPropagation()}
@@ -2088,6 +2204,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     onChange={(e) =>
                       !isBettingDisabled && setBetValues({ ...betValues, bet10: e.target.value })
                     }
+                    onBlur={(e) => handleBetValueChange("bet10", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
                     className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                     onClick={(e) => e.stopPropagation()}
@@ -2119,6 +2241,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     onChange={(e) =>
                       !isBettingDisabled && setBetValues({ ...betValues, bet11: e.target.value })
                     }
+                    onBlur={(e) => handleBetValueChange("bet11", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
                     className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                     onClick={(e) => e.stopPropagation()}
@@ -2150,6 +2278,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     onChange={(e) =>
                       !isBettingDisabled && setBetValues({ ...betValues, bet12: e.target.value })
                     }
+                    onBlur={(e) => handleBetValueChange("bet12", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.target.blur();
+                      }
+                    }}
                     className="w-full h-full bg-transparent border-none outline-none text-white text-center text-[1vw] font-semibold placeholder-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     placeholder="0"
                     onClick={(e) => e.stopPropagation()}
