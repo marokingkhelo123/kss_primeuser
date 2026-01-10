@@ -1,6 +1,26 @@
 import React, { useEffect, useRef } from "react";
 import JsBarcode from "jsbarcode";
 
+/**
+ * RECEIPT PRINTER MARGINS/PADDING SETTINGS:
+ * 
+ * There are TWO print methods, adjust margins/padding in both places:
+ * 
+ * 1. ELECTRON PRINTING (generateReceiptHTML function):
+ *    - Line ~122: body { padding: 12px; } - Content padding
+ *    - Line ~195: @page { margin: 0; } - Page margin
+ * 
+ * 2. BROWSER PRINTING (@media print styles):
+ *    - Line ~508: .receipt-container > div { padding: 12px !important; } - Content padding
+ *    - Line ~513: @page { margin: 0; } - Page margin
+ * 
+ * Common margin/padding formats:
+ *   - margin: 10mm; (all sides)
+ *   - margin: 10mm 5mm; (top/bottom, left/right)
+ *   - margin: 5mm 10mm 5mm 10mm; (top, right, bottom, left)
+ *   - padding: 12px; (all sides)
+ */
+
 const Receipt = ({ receiptData, onClose }) => {
   const barcodeRef = useRef(null);
   const printedReceiptsRef = useRef(new Set());
@@ -109,11 +129,17 @@ const Receipt = ({ receiptData, onClose }) => {
       padding: 0;
       box-sizing: border-box;
     }
+    html {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
     body {
       font-family: Arial, sans-serif;
       width: 80mm;
       margin: 0 auto;
-      padding: 12px;
+      padding: 12px; /* 📌 PRINTER PADDING: Adjust this value (top right bottom left) or use specific sides like padding: 10px 5px; */
       background: white;
     }
     .header {
@@ -186,7 +212,7 @@ const Receipt = ({ receiptData, onClose }) => {
     }
     @page {
       size: 80mm auto;
-      margin: 0;
+      margin: 0; /* 📌 PRINTER PAGE MARGIN (Electron): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
       padding: 0;
     }
   </style>
@@ -311,6 +337,7 @@ const Receipt = ({ receiptData, onClose }) => {
         }}
       >
           {/* Receipt Content */}
+          {/* 📌 VISUAL PADDING (on screen only): Tailwind classes p-4 (16px) and print:p-3 (12px) - For actual print margins, see @media print styles below */}
           <div
             className="bg-white p-4 print:p-3"
             style={{ 
@@ -468,7 +495,7 @@ const Receipt = ({ receiptData, onClose }) => {
             box-sizing: border-box;
           }
           html, body {
-            width: 80mm;
+            width: 100%;
             height: auto;
             overflow: visible;
             background: white;
@@ -482,8 +509,9 @@ const Receipt = ({ receiptData, onClose }) => {
           }
           .receipt-container {
             position: fixed !important;
-            left: 0 !important;
+            left: 50% !important;
             top: 0 !important;
+            transform: translateX(-50%) !important;
             width: 80mm !important;
             max-width: 80mm !important;
             box-shadow: none !important;
@@ -498,13 +526,12 @@ const Receipt = ({ receiptData, onClose }) => {
             max-width: 100% !important;
           }
           .receipt-container > div {
-            padding: 12px !important;
+            padding: 12px !important; /* 📌 PRINTER PADDING (Browser Print): Adjust this value for content padding inside the receipt */
             background: white !important;
           }
           @page {
             size: 80mm auto;
-            margin: 0;
-            padding: 0;
+            margin: 0; /* 📌 PRINTER PAGE MARGIN (Browser Print): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
           }
         }
       `}</style>
