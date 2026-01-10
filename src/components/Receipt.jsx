@@ -137,7 +137,8 @@ const Receipt = ({ receiptData, onClose }) => {
     }
     body {
       font-family: Arial, sans-serif;
-      width: 80mm;
+      width: auto;
+      max-width: 100%;
       margin: 0 auto;
       padding: 12px; /* 📌 PRINTER PADDING: Adjust this value (top right bottom left) or use specific sides like padding: 10px 5px; */
       background: white;
@@ -211,7 +212,7 @@ const Receipt = ({ receiptData, onClose }) => {
       line-height: 1.2;
     }
     @page {
-      size: 80mm auto;
+      size: auto;
       margin: 0; /* 📌 PRINTER PAGE MARGIN (Electron): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
       padding: 0;
     }
@@ -331,7 +332,8 @@ const Receipt = ({ receiptData, onClose }) => {
         style={{ 
           position: "absolute",
           left: "-9999px",
-          width: "80mm",
+          width: "auto",
+          maxWidth: "100%",
           visibility: "hidden",
           display: "block"
         }}
@@ -343,7 +345,7 @@ const Receipt = ({ receiptData, onClose }) => {
             style={{ 
               fontFamily: "Arial, sans-serif",
               width: "100%",
-              maxWidth: "80mm",
+              maxWidth: "100%",
               margin: "0 auto"
             }}
           >
@@ -512,8 +514,8 @@ const Receipt = ({ receiptData, onClose }) => {
             left: 50% !important;
             top: 0 !important;
             transform: translateX(-50%) !important;
-            width: 80mm !important;
-            max-width: 80mm !important;
+            width: auto !important;
+            max-width: 100% !important;
             box-shadow: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -530,7 +532,7 @@ const Receipt = ({ receiptData, onClose }) => {
             background: white !important;
           }
           @page {
-            size: 80mm auto;
+            size: auto;
             margin: 0; /* 📌 PRINTER PAGE MARGIN (Browser Print): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
           }
         }
