@@ -4,27 +4,21 @@ import JsBarcode from "jsbarcode";
 /**
  * RECEIPT PRINTER MARGINS/PADDING SETTINGS:
  * 
- * This receipt is configured to AUTO-SIZE to the thermal printer's paper width.
- * The @page size is set to "auto" to match the printer's native width (typically 58mm, 80mm, or 110mm).
- * 
  * There are TWO print methods, adjust margins/padding in both places:
  * 
  * 1. ELECTRON PRINTING (generateReceiptHTML function):
- *    - Line ~140: body { padding: 12px; } - Content padding
- *    - Line ~214: @page { size: auto; margin: 0; } - Auto-size to printer width, page margin
+ *    - Line ~122: body { padding: 12px; } - Content padding
+ *    - Line ~195: @page { margin: 0; } - Page margin
  * 
  * 2. BROWSER PRINTING (@media print styles):
- *    - Line ~529: .receipt-container > div { padding: 12px !important; } - Content padding
- *    - Line ~534: @page { size: auto; margin: 0; } - Auto-size to printer width, page margin
+ *    - Line ~508: .receipt-container > div { padding: 12px !important; } - Content padding
+ *    - Line ~513: @page { margin: 0; } - Page margin
  * 
  * Common margin/padding formats:
  *   - margin: 10mm; (all sides)
  *   - margin: 10mm 5mm; (top/bottom, left/right)
  *   - margin: 5mm 10mm 5mm 10mm; (top, right, bottom, left)
  *   - padding: 12px; (all sides)
- * 
- * NOTE: Width is set to 100% and max-width to 100% to ensure content fills the printer width naturally.
- * Centering transforms have been removed to prevent right-side alignment issues.
  */
 
 const Receipt = ({ receiptData, onClose }) => {
@@ -136,15 +130,15 @@ const Receipt = ({ receiptData, onClose }) => {
       box-sizing: border-box;
     }
     html {
-      margin: 0;
-      padding: 0;
-      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
     }
     body {
       font-family: Arial, sans-serif;
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
+      width: 80mm;
+      margin: 0 auto;
       padding: 12px; /* 📌 PRINTER PADDING: Adjust this value (top right bottom left) or use specific sides like padding: 10px 5px; */
       background: white;
     }
@@ -217,7 +211,7 @@ const Receipt = ({ receiptData, onClose }) => {
       line-height: 1.2;
     }
     @page {
-      size: auto;
+      size: 80mm auto;
       margin: 0; /* 📌 PRINTER PAGE MARGIN (Electron): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
       padding: 0;
     }
@@ -337,8 +331,7 @@ const Receipt = ({ receiptData, onClose }) => {
         style={{ 
           position: "absolute",
           left: "-9999px",
-          width: "100%",
-          maxWidth: "100%",
+          width: "80mm",
           visibility: "hidden",
           display: "block"
         }}
@@ -350,8 +343,8 @@ const Receipt = ({ receiptData, onClose }) => {
             style={{ 
               fontFamily: "Arial, sans-serif",
               width: "100%",
-              maxWidth: "100%",
-              margin: "0"
+              maxWidth: "80mm",
+              margin: "0 auto"
             }}
           >
             {/* Header - King Title */}
@@ -515,12 +508,12 @@ const Receipt = ({ receiptData, onClose }) => {
             visibility: visible !important;
           }
           .receipt-container {
-            position: relative !important;
-            left: 0 !important;
+            position: fixed !important;
+            left: 50% !important;
             top: 0 !important;
-            transform: none !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            transform: translateX(-50%) !important;
+            width: 80mm !important;
+            max-width: 80mm !important;
             box-shadow: none !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -535,12 +528,9 @@ const Receipt = ({ receiptData, onClose }) => {
           .receipt-container > div {
             padding: 12px !important; /* 📌 PRINTER PADDING (Browser Print): Adjust this value for content padding inside the receipt */
             background: white !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
           }
           @page {
-            size: auto;
+            size: 80mm auto;
             margin: 0; /* 📌 PRINTER PAGE MARGIN (Browser Print): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
           }
         }
