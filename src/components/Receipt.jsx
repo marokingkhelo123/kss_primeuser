@@ -360,7 +360,7 @@ const Receipt = ({ receiptData, onClose }) => {
                   lineHeight: "1.2"
                 }}
               >
-                King
+                King Spinner
               </h2>
             </div>
 
@@ -406,7 +406,7 @@ const Receipt = ({ receiptData, onClose }) => {
               </div>
             </div>
 
-            {/* Bet Details Header */}
+            {/* Bet Details Header */} 
             <div className="mb-1 mt-3">
               <div className="grid grid-cols-3 gap-1 font-bold" style={{ fontSize: `${fontSizes.xs}px` }}>
                 <div>Ac / Qt</div>
@@ -435,6 +435,7 @@ const Receipt = ({ receiptData, onClose }) => {
             </div>
 
             {/* Total Points */}
+            <hr style={{ border:"1px dotted #000", display:"block" }} />
             <div className="mb-2 mt-2">
               <div className="font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
                 Total Pts - {receiptData.totalBetPoints?.toFixed(2) || "0.00"}
@@ -514,13 +515,14 @@ const Receipt = ({ receiptData, onClose }) => {
             left: 50% !important;
             top: 0 !important;
             transform: translateX(-50%) !important;
-            width: auto !important;
+            width: 88% !important;
             max-width: 100% !important;
             box-shadow: none !important;
             margin: 0 !important;
             padding: 0 !important;
             border-radius: 0 !important;
             background: white !important;
+            border:3px solid #000;
           }
           .receipt-container svg {
             visibility: visible !important;

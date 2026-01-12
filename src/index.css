@@ -10,3 +10,32 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.backdrop-blur-lg{
+  background: #ffffff8a;
+  border: 1px solid #fff;
+}
+
+.input-text-color{
+  color: #42005d;
+}
+
+.page-login .logo-login{
+  width: 120px;
+}
+
+.page-login input::placeholder{
+  color: #42005d;
+  opacity: 0.5;
+}
+
+.page-login button{
+  text-transform: uppercase;
+  font-size: 20px;
+  margin-top: 36px !important;
+}
+ 
+.text-red-200 { 
+  color: #c60000;
+}
+

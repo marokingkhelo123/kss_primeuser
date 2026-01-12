@@ -106,22 +106,22 @@ const Login = ({ onLogin }) => {
       {/* Overlay for better readability */}
       <div className="absolute inset-0"></div>
       
-      <div className="bg-black/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20 relative z-10">
-        <div className="text-center mb-8">
+      <div className="bg-black/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20 relative z-10 page-login">
+        <div className="text-center mb-5">
           <img 
             src={loginLogo} 
             alt="KSS Logo" 
-            className="w-40 h-auto mx-auto mb-4"
+            className="w-40 h-auto mx-auto mb-4 logo-login"
           />
-          <p className="text-white/90 text-lg">Sign in to your account</p>
+          {/* <p className="text-white/90 text-lg">Sign in to your account</p> */}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="username" className="block text-white/90 text-sm font-medium mb-2">
+            {/* <label htmlFor="username" className="block text-white/90 text-sm font-medium mb-2">
               Username
-            </label>
-            <div className="relative">
+            </label> */}
+            <div className="relative bg-white rounded-lg">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <img src={userIcon} alt="User" className="w-5 h-5 opacity-70" />
               </div>
@@ -132,17 +132,17 @@ const Login = ({ onLogin }) => {
                 value={formData.username}
                 onChange={handleChange}
                 required
-                className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg  placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all input-text-color"
                 placeholder="Enter your username"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-white/90 text-sm font-medium mb-2">
+            {/* <label htmlFor="password" className="block text-white/90 text-sm font-medium mb-2">
               Password
-            </label>
-            <div className="relative">
+            </label> */}
+            <div className="relative bg-white rounded-lg">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <img src={lockIcon} alt="Lock" className="w-5 h-5 opacity-70" />
               </div>
@@ -153,7 +153,7 @@ const Login = ({ onLogin }) => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg  placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all input-text-color"
                 placeholder="Enter your password"
               />
             </div>
@@ -168,7 +168,7 @@ const Login = ({ onLogin }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg"
+            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg"
           >
             {isLoading ? (
               <>
