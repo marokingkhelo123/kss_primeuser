@@ -93,6 +93,7 @@ import AttentionPopup from "../components/AttentionPopup";
 import CongratulationsPopup from "../components/CongratulationsPopup";
 import OopsPopup from "../components/OopsPopup";
 import SlotMachine from "../components/SlotMachine";
+import InformationPopup from "../components/InformationPopup";
 
 const Landing = ({ onLogout, onShowMyAccount }) => {
   const [showInfoPopup, setShowInfoPopup] = useState(false);
@@ -149,6 +150,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const isApiCallInProgressRef = useRef(false); // Track if API call is in progress
   const apiCallTimeoutRef = useRef(null); // Track timeout for sequential API calls
   const hasMadeFirstApiCallRef = useRef(false); // Track if first API call at 5 seconds has been made
+  const claimInputRef = useRef(null); // Ref for claim barcode input field
+  const barcodeBufferRef = useRef(""); // Buffer to accumulate barcode characters
+  const lastBarcodeKeyTimeRef = useRef(0); // Track timing between keystrokes for barcode detection
 
   // Slot machine image arrays
   const picSmImages = [
@@ -562,85 +566,6 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
   };
 
-  // Format bet information rows for the information popup
-  // Map backend bet keys to numeric betting numbers
-  const mapBetKeyToNumber = (key) => {
-    const wordToNumber = {
-      one: 1,
-      two: 2,
-      three: 3,
-      four: 4,
-      five: 5,
-      six: 6,
-      seven: 7,
-      eight: 8,
-      nine: 9,
-      ten: 10,
-      eleven: 11,
-      twelve: 12,
-    };
-
-    if (key.startsWith("bet")) {
-      const numeric = Number(key.replace("bet", ""));
-      return Number.isNaN(numeric) ? null : numeric;
-    }
-
-    if (wordToNumber[key] !== undefined) {
-      return wordToNumber[key];
-    }
-
-    return null;
-  };
-
-  const formatInformationRows = (bets = []) => {
-    return bets.map((bet) => {
-      const betDate = bet.startTime
-        ? new Date(bet.startTime)
-        : bet.createdAt
-        ? new Date(bet.createdAt)
-        : null;
-
-      const formattedDate = betDate
-        ? betDate.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "2-digit",
-          })
-        : "--";
-
-      const formattedTime = betDate
-        ? betDate.toLocaleTimeString("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          })
-        : "--";
-
-      const betAmounts = bet.betAmounts || {};
-      const bettingNumbers = Object.entries(betAmounts)
-        .filter(([, amount]) => Number(amount) > 0)
-        .map(([key]) => mapBetKeyToNumber(key))
-        .filter((value) => value !== null)
-        .sort((a, b) => a - b);
-
-      const points =
-        typeof bet.totalBetPoints === "number"
-          ? bet.totalBetPoints
-          : Object.values(betAmounts).reduce(
-              (sum, amount) => sum + Number(amount || 0),
-              0
-            );
-
-      return {
-        date: formattedDate,
-        time: formattedTime,
-        bettingNumbers,
-        points,
-        ticketCode: bet.uniqueString || "--",
-      };
-    });
-  };
-
   // Format helpers to align receipt time/date with current game time
   const formatGameDate = (dateInput) => {
     if (!dateInput) return null;
@@ -664,52 +589,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     });
   };
 
-  // Resolve userId from state or localStorage
-  const resolveUserId = () => {
-    if (userId) return userId;
-
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser && parsedUser._id) {
-          setUserId(parsedUser._id);
-          return parsedUser._id;
-        }
-      } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
-      }
-    }
-
-    return null;
-  };
-
-  // Fetch user information for the popup
-  const fetchUserInformation = async () => {
-    const activeUserId = resolveUserId();
-    if (!activeUserId) {
-      console.warn("UserId is not available to load information table");
-      return;
-    }
-
-    setIsInfoLoading(true);
-    try {
-      const response = await api.post("/users/get-user-info", {
-        userId: activeUserId,
-      });
-      const bets = response.data?.data || [];
-      setInfoData(formatInformationRows(bets).reverse());
-    } catch (error) {
-      console.error("Error fetching user information:", error);
-      setInfoData([]);
-    } finally {
-      setIsInfoLoading(false);
-    }
-  };
-
   const handleInfoClick = () => {
     playAllBtnSound();
-    fetchUserInformation();
     setShowInfoPopup(true);
   };
 
@@ -1088,6 +969,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       setClaimBarcode("");
     } finally {
       setIsCheckingClaim(false);
+      // Refocus the input after checking completes for next barcode scan
+      if (showClaimInput && claimInputRef.current) {
+        setTimeout(() => {
+          if (claimInputRef.current) {
+            claimInputRef.current.focus();
+          }
+        }, 100);
+      }
     }
   };
 
@@ -1592,6 +1481,88 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
   }, [claimBarcode, showClaimInput, isCheckingClaim]);
 
+  // Auto-focus claim input when it becomes visible
+  useEffect(() => {
+    if (showClaimInput && claimInputRef.current && !isCheckingClaim) {
+      // Use setTimeout to ensure the input is rendered before focusing
+      const focusTimer = setTimeout(() => {
+        if (claimInputRef.current) {
+          claimInputRef.current.focus();
+        }
+      }, 100);
+      
+      return () => clearTimeout(focusTimer);
+    }
+  }, [showClaimInput, isCheckingClaim]);
+
+  // Global barcode scanner detection - automatically capture barcode input
+  useEffect(() => {
+    if (!showClaimInput) return;
+
+    const handleGlobalKeyDown = (e) => {
+      // Skip if currently checking claim
+      if (isCheckingClaim) {
+        return;
+      }
+
+      // Check if claim input is focused - if so, let it handle input normally
+      if (document.activeElement === claimInputRef.current) {
+        return;
+      }
+
+      const currentTime = Date.now();
+      const timeSinceLastKey = currentTime - lastBarcodeKeyTimeRef.current;
+
+      // Check if this might be barcode scanner input
+      // Barcode scanners send characters very quickly (usually < 50ms apart)
+      // and don't use modifier keys
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+        // Check if we're not in any other input/textarea field
+        const activeElement = document.activeElement;
+        const isInInputField = activeElement && (
+          activeElement.tagName === "INPUT" || 
+          activeElement.tagName === "TEXTAREA" ||
+          activeElement.isContentEditable
+        );
+
+        // If rapid input detected (likely barcode scanner) and not in any input field
+        if (timeSinceLastKey < 50 && !isInInputField) {
+          // Rapid character input detected - likely barcode scanner
+          // Focus the claim input to capture the barcode
+          if (claimInputRef.current) {
+            e.preventDefault();
+            claimInputRef.current.focus();
+            // Clear any existing value when starting a new scan
+            setClaimBarcode("");
+            barcodeBufferRef.current = "";
+            // The character will naturally flow into the focused input
+          }
+        }
+      }
+
+      // Handle Enter key - if barcode scanner sends Enter and input is focused, it will be handled by onKeyPress
+      // If Enter is pressed elsewhere but we have a barcode buffer, focus input and submit
+      if (e.key === "Enter" && barcodeBufferRef.current.length > 0 && claimInputRef.current) {
+        e.preventDefault();
+        claimInputRef.current.focus();
+        setClaimBarcode(barcodeBufferRef.current);
+        barcodeBufferRef.current = "";
+      }
+
+      lastBarcodeKeyTimeRef.current = currentTime;
+    };
+
+    // Add global keyboard listener with capture phase to catch events early
+    window.addEventListener("keydown", handleGlobalKeyDown, true);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown, true);
+      barcodeBufferRef.current = "";
+      lastBarcodeKeyTimeRef.current = 0;
+    };
+  }, [isCheckingClaim, showClaimInput]);
+
   // Helper function to get draw table icon based on result number
   const getDrawIcon = (resultNumber) => {
     const iconMap = {
@@ -1702,15 +1673,32 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           />
           {showClaimInput && (
             <input
+              ref={claimInputRef}
               type="text"
               value={claimBarcode}
-              onChange={(e) => setClaimBarcode(e.target.value)}
+              onChange={(e) => {
+                setClaimBarcode(e.target.value);
+                // Update buffer for barcode scanner detection
+                barcodeBufferRef.current = e.target.value;
+              }}
               onKeyPress={(e) => {
                 if (e.key === "Enter" && !isCheckingClaim) {
                   handleClaimCheck();
                 }
               }}
-              placeholder="Enter barcode"
+              onBlur={(e) => {
+                // Prevent losing focus if we're not checking - keep ready for next scan
+                // Only allow blur if we're checking claim (processing)
+                if (!isCheckingClaim) {
+                  // Small delay to allow other focus events to complete
+                  setTimeout(() => {
+                    if (claimInputRef.current && showClaimInput) {
+                      claimInputRef.current.focus();
+                    }
+                  }, 50);
+                }
+              }}
+              placeholder="Scan barcode or enter manually"
               className="absolute left-[62%] top-[55%] transform -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 text-black focus:outline-none text-xs placeholder:text-black/70 z-10"
               style={{ width: "60%", height: "45%" }}
               disabled={isCheckingClaim}
@@ -2709,83 +2697,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       </div>
 
       {/* Information Popup Modal */}
-      {showInfoPopup && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
-          onClick={() => setShowInfoPopup(false)}
-        >
-          <div
-            className="relative bg-blue-600 rounded-lg p-8 w-full max-w-[90vw] md:max-w-4xl mx-4 max-h-[80vh] overflow-y-auto"
-            style={{ backgroundColor: "#1e40af" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button - Red circular button with white X */}
-            <button
-              onClick={() => setShowInfoPopup(false)}
-              className="absolute top-4 right-4 w-10 h-10 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-700 transition-colors"
-            >
-              <span className="text-white text-2xl font-bold cursor-pointer ">
-                X
-              </span>
-            </button>
-
-            {/* Title */}
-            <h2 className="text-white font-bold text-2xl text-center mb-6">
-              Information
-            </h2>
-
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-white">
-                <thead>
-                  <tr className="border-b border-blue-400">
-                    <th className="text-left py-3 px-4 font-bold">Date</th>
-                    <th className="text-left py-3 px-4 font-bold">Time</th>
-                    <th className="text-left py-3 px-4 font-bold">
-                      Betting Number
-                    </th>
-                    <th className="text-left py-3 px-4 font-bold">Points</th>
-                    <th className="text-left py-3 px-4 font-bold">Ticket Code</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isInfoLoading ? (
-                    <tr className="border-b border-blue-400">
-                      <td className="py-3 px-4 text-center" colSpan={5}>
-                        Loading...
-                      </td>
-                    </tr>
-                  ) : infoData.length === 0 ? (
-                    <tr className="border-b border-blue-400">
-                      <td className="py-3 px-4 text-center" colSpan={5}>
-                        No information available yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    infoData.map((row, index) => (
-                      <tr key={index} className="border-b border-blue-400">
-                        <td className="py-3 px-4">{row.date}</td>
-                        <td className="py-3 px-4">{row.time}</td>
-                        <td className="py-3 px-4">
-                          {row.bettingNumbers.join(", ")}
-                        </td>
-                        <td className="py-3 px-4">{row.points}</td>
-                        <td className="py-3 px-4">{row.ticketCode}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Note */}
-            <p className="text-white text-center mt-6 text-sm">
-              Note: Only for 1 day, next day it will be deleted.
-            </p>
-          </div>
-        </div>
-      )}
+      <InformationPopup
+        isOpen={showInfoPopup}
+        onClose={() => setShowInfoPopup(false)}
+        userId={userId}
+      />
 
       {/* Receipt Popup */}
       {showReceipt && receiptData && (
