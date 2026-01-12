@@ -4,15 +4,15 @@ import JsBarcode from "jsbarcode";
 /**
  * RECEIPT PRINTER MARGINS/PADDING SETTINGS:
  * 
- * There are TWO print methods, adjust margins/padding in both places:
+ * Both Electron and Browser printing use the same structure. Adjust margins/padding in both places:
  * 
  * 1. ELECTRON PRINTING (generateReceiptHTML function):
- *    - Line ~122: body { padding: 12px; } - Content padding
- *    - Line ~195: @page { margin: 0; } - Page margin
+ *    - Line ~143: .receipt-content { padding: 12px; } - Content padding
+ *    - Line ~217: @page { margin: 0; } - Page margin
  * 
  * 2. BROWSER PRINTING (@media print styles):
- *    - Line ~508: .receipt-container > div { padding: 12px !important; } - Content padding
- *    - Line ~513: @page { margin: 0; } - Page margin
+ *    - Line ~533: .receipt-container > div { padding: 12px !important; } - Content padding
+ *    - Line ~538: @page { margin: 0; } - Page margin
  * 
  * Common margin/padding formats:
  *   - margin: 10mm; (all sides)
@@ -90,7 +90,7 @@ const Receipt = ({ receiptData, onClose }) => {
     };
   }, [receiptData?.uniqueString]);
 
-  // Generate receipt HTML for printing
+  // Generate receipt HTML for printing (matches browser version exactly)
   const generateReceiptHTML = (barcodeSVG) => {
     const betDetails = formatBetDetails(receiptData?.betAmounts || {});
     const betColumns = distributeBetsIntoColumns(betDetails);
@@ -103,7 +103,7 @@ const Receipt = ({ receiptData, onClose }) => {
       base: 18,
     };
 
-    // Generate bet rows HTML
+    // Generate bet rows HTML (matching browser version structure)
     const betRowsHTML = Array.from({ length: maxColumnLength })
       .map((_, rowIndex) => {
         const col1 = betColumns[0][rowIndex] ? `${betColumns[0][rowIndex].number} * ${betColumns[0][rowIndex].amount}` : "";
@@ -129,19 +129,35 @@ const Receipt = ({ receiptData, onClose }) => {
       padding: 0;
       box-sizing: border-box;
     }
-    html {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
+    html, body {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+      background: white;
     }
     body {
       font-family: Arial, sans-serif;
-      width: auto;
+      width: 100%;
       max-width: 100%;
       margin: 0 auto;
+      padding: 0;
+      background: white;
+    }
+    .receipt-container {
+      width: 88%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0;
+      background: white;
+      border: 3px solid #000;
+    }
+    .receipt-content {
       padding: 12px; /* 📌 PRINTER PADDING: Adjust this value (top right bottom left) or use specific sides like padding: 10px 5px; */
       background: white;
+      font-family: Arial, sans-serif;
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
     }
     .header {
       text-align: center;
@@ -175,6 +191,14 @@ const Receipt = ({ receiptData, onClose }) => {
       font-size: ${fontSizes.xs}px;
       margin-top: 12px;
       margin-bottom: 4px;
+    }
+    .bet-details {
+      margin-bottom: 8px;
+    }
+    .total-separator {
+      border: 1px dotted #000;
+      display: block;
+      margin: 0;
     }
     .total {
       font-weight: bold;
@@ -214,49 +238,55 @@ const Receipt = ({ receiptData, onClose }) => {
     @page {
       size: auto;
       margin: 0; /* 📌 PRINTER PAGE MARGIN (Electron): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
-      padding: 0;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h2>King</h2>
-  </div>
-  
-  <div class="info-row">
-    <div class="info-left">
-      <div><strong>KUID -</strong> ${receiptData.kuid || "0001"}</div>
-      <div><strong>Date</strong> ${receiptData.date || "01/01/2024"}</div>
+  <div class="receipt-container">
+    <div class="receipt-content">
+      <div class="header">
+        <h2>King Spinner</h2>
+      </div>
+      
+      <div class="info-row">
+        <div class="info-left">
+          <div><strong>KUID -</strong> ${receiptData.kuid || "0001"}</div>
+          <div><strong>Date</strong> ${receiptData.date || "01/01/2024"}</div>
+        </div>
+        <div class="info-right">
+          <div><strong>Oder No.</strong> ${receiptData.orderNumber || "0000001"}</div>
+          ${receiptData.drawTime ? `<div><strong>Draw Time -</strong> ${receiptData.drawTime}</div>` : ""}
+        </div>
+      </div>
+      
+      <div class="bet-header">
+        <div>Ac / Qt</div>
+        <div>Ac / Qt</div>
+        <div>Ac / Qt</div>
+      </div>
+      
+      <div class="bet-details">
+        ${betRowsHTML}
+      </div>
+      
+      <hr class="total-separator" />
+      <div class="total">
+        Total Pts - ${receiptData.totalBetPoints?.toFixed(2) || "0.00"}
+      </div>
+      
+      <div class="print-time">
+        Print On ${receiptData.printTime || "01/01/24 01:47"}
+      </div>
+      
+      <div class="barcode-container">
+        ${barcodeSVG || ""}
+        <div class="barcode-text">${receiptData.uniqueString || "123456789000000000000"}</div>
+      </div>
+      
+      <div class="footer">
+        For Amusement Only
+      </div>
     </div>
-    <div class="info-right">
-      <div><strong>Oder No.</strong> ${receiptData.orderNumber || "0000001"}</div>
-      ${receiptData.drawTime ? `<div><strong>Draw Time -</strong> ${receiptData.drawTime}</div>` : ""}
-    </div>
-  </div>
-  
-  <div class="bet-header">
-    <div>Ac / Qt</div>
-    <div>Ac / Qt</div>
-    <div>Ac / Qt</div>
-  </div>
-  
-  ${betRowsHTML}
-  
-  <div class="total">
-    Total Pts - ${receiptData.totalBetPoints?.toFixed(2) || "0.00"}
-  </div>
-  
-  <div class="print-time">
-    Print On ${receiptData.printTime || "01/01/24 01:47"}
-  </div>
-  
-  <div class="barcode-container">
-    ${barcodeSVG || ""}
-    <div class="barcode-text">${receiptData.uniqueString || "123456789000000000000"}</div>
-  </div>
-  
-  <div class="footer">
-    For Amusement Only
   </div>
 </body>
 </html>`;
