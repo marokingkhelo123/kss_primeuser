@@ -698,7 +698,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         userId: activeUserId,
       });
       const bets = response.data?.data || [];
-      setInfoData(formatInformationRows(bets));
+      setInfoData(formatInformationRows(bets).reverse());
     } catch (error) {
       console.error("Error fetching user information:", error);
       setInfoData([]);
