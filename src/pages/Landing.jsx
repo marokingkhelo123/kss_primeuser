@@ -154,6 +154,20 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const barcodeBufferRef = useRef(""); // Buffer to accumulate barcode characters
   const lastBarcodeKeyTimeRef = useRef(0); // Track timing between keystrokes for barcode detection
 
+  const isEditableElement = (element) => {
+    if (!element) return false;
+    const tag = element.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || element.isContentEditable;
+  };
+
+  const shouldRefocusClaimInput = () => {
+    const activeElement = document.activeElement;
+    if (!activeElement) return true;
+    if (activeElement === claimInputRef.current) return true;
+    if (isEditableElement(activeElement)) return false;
+    return true;
+  };
+
   // Slot machine image arrays
   const picSmImages = [
     picSm1,
@@ -970,9 +984,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     } finally {
       setIsCheckingClaim(false);
       // Refocus the input after checking completes for next barcode scan
-      if (showClaimInput && claimInputRef.current) {
+      if (showClaimInput && claimInputRef.current && shouldRefocusClaimInput()) {
         setTimeout(() => {
-          if (claimInputRef.current) {
+          if (claimInputRef.current && shouldRefocusClaimInput()) {
             claimInputRef.current.focus();
           }
         }, 100);
@@ -1486,7 +1500,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     if (showClaimInput && claimInputRef.current && !isCheckingClaim) {
       // Use setTimeout to ensure the input is rendered before focusing
       const focusTimer = setTimeout(() => {
-        if (claimInputRef.current) {
+        if (claimInputRef.current && shouldRefocusClaimInput()) {
           claimInputRef.current.focus();
         }
       }, 100);
@@ -1692,7 +1706,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 if (!isCheckingClaim) {
                   // Small delay to allow other focus events to complete
                   setTimeout(() => {
-                    if (claimInputRef.current && showClaimInput) {
+                    if (claimInputRef.current && showClaimInput && shouldRefocusClaimInput()) {
                       claimInputRef.current.focus();
                     }
                   }, 50);

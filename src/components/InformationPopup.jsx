@@ -4,6 +4,7 @@ import { api } from "../utils/api";
 const InformationPopup = ({ isOpen, onClose, userId }) => {
   const [infoData, setInfoData] = useState([]);
   const [isInfoLoading, setIsInfoLoading] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(null);
 
   // Map backend bet keys to numeric betting numbers
   const mapBetKeyToNumber = (key) => {
@@ -133,6 +134,17 @@ const InformationPopup = ({ isOpen, onClose, userId }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userId]);
 
+  const handleCopy = async (ticketCode) => {
+    if (!ticketCode || ticketCode === "--") return;
+    try {
+      await navigator.clipboard.writeText(ticketCode);
+      setCopiedCode(ticketCode);
+      setTimeout(() => setCopiedCode(null), 1500);
+    } catch (error) {
+      console.error("Failed to copy ticket code:", error);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -197,7 +209,36 @@ const InformationPopup = ({ isOpen, onClose, userId }) => {
                       {row.bettingNumbers.join(", ")}
                     </td>
                     <td className="py-3 px-4">{row.points}</td>
-                    <td className="py-3 px-4">{row.ticketCode}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span>{row.ticketCode}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(row.ticketCode)}
+                          className="rounded bg-blue-500 p-2 text-white hover:bg-blue-400 transition-colors"
+                          aria-label="Copy ticket code"
+                          title="Copy ticket code"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <rect x="9" y="9" width="10" height="10" rx="2" />
+                            <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                          </svg>
+                        </button>
+                        {copiedCode === row.ticketCode && (
+                          <span className="text-xs text-green-200">
+                            Copied
+                          </span>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
