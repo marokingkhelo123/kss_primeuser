@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import JsBarcode from "jsbarcode";
 
 /**
  * RECEIPT PRINTER MARGINS/PADDING SETTINGS:
@@ -24,6 +23,13 @@ import JsBarcode from "jsbarcode";
 const Receipt = ({ receiptData, onClose }) => {
   const barcodeRef = useRef(null);
   const printedReceiptsRef = useRef(new Set());
+
+  // Format uniqueString for Code39 barcode (requires * at start and end)
+  const formatCode39 = (text) => {
+    if (!text) return "*";
+    // Code39 format: *data*
+    return `*${text.toUpperCase()}*`;
+  };
 
   // Map backend bet keys to numbers
   const betKeyToNumber = {
@@ -65,33 +71,23 @@ const Receipt = ({ receiptData, onClose }) => {
     return columns;
   };
 
-  // Generate barcode
+  // Load barcode font from BarcodeFonts folder
   useEffect(() => {
-    if (!receiptData?.uniqueString || !barcodeRef.current) return;
-
-    try {
-      // Clear previous barcode
-      barcodeRef.current.innerHTML = "";
-      JsBarcode(barcodeRef.current, receiptData.uniqueString, {
-        format: "CODE128",
-        width: 2,
-        height: 60,
-        displayValue: false,
-      });
-    } catch (error) {
-      console.error("Error generating barcode:", error);
-    }
-
-    return () => {
-      // Cleanup: clear barcode on unmount
-      if (barcodeRef.current) {
-        barcodeRef.current.innerHTML = "";
-      }
-    };
-  }, [receiptData?.uniqueString]);
+    const fontPath = "/Code39AzaleaRegular1.ttf"; // Font is in public folder
+    const fontFace = new FontFace(
+      "Code39Azalea",
+      `url(${fontPath})`
+    );
+    
+    fontFace.load().then((loadedFont) => {
+      document.fonts.add(loadedFont);
+    }).catch((error) => {
+      console.error("Error loading barcode font:", error);
+    });
+  }, []);
 
   // Generate receipt HTML for printing (matches browser version exactly)
-  const generateReceiptHTML = (barcodeSVG) => {
+  const generateReceiptHTML = () => {
     const betDetails = formatBetDetails(receiptData?.betAmounts || {});
     const betColumns = distributeBetsIntoColumns(betDetails);
     const maxColumnLength = Math.max(...betColumns.map(col => col.length));
@@ -215,13 +211,14 @@ const Receipt = ({ receiptData, onClose }) => {
       text-align: center;
       margin-bottom: 8px;
     }
-    .barcode-svg {
-      max-width: 100%;
-      display: block;
-      margin: 0 auto;
-      height: 60px;
-    }
     .barcode-text {
+      font-family: "Code39Azalea", monospace;
+      font-size: 48px;
+      line-height: 1;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .barcode-label {
       margin-top: 4px;
       font-family: monospace;
       letter-spacing: 1px;
@@ -238,6 +235,10 @@ const Receipt = ({ receiptData, onClose }) => {
     @page {
       size: auto;
       margin: 0; /* 📌 PRINTER PAGE MARGIN (Electron): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
+    }
+    @font-face {
+      font-family: "Code39Azalea";
+      src: url("/Code39AzaleaRegular1.ttf") format("truetype");
     }
   </style>
 </head>
@@ -279,8 +280,8 @@ const Receipt = ({ receiptData, onClose }) => {
       </div>
       
       <div class="barcode-container">
-        ${barcodeSVG || ""}
-        <div class="barcode-text">${receiptData.uniqueString || "123456789000000000000"}</div>
+        <div class="barcode-text">${formatCode39(receiptData.uniqueString || "123456789000000000000")}</div>
+        <div class="barcode-label">${receiptData.uniqueString || "123456789000000000000"}</div>
       </div>
       
       <div class="footer">
@@ -308,13 +309,10 @@ const Receipt = ({ receiptData, onClose }) => {
       // Mark this receipt as printed
       printedReceiptsRef.current.add(receiptId);
       
-      // Wait longer to ensure barcode SVG is fully rendered
+      // Wait for font to load
       setTimeout(() => {
-        // Get the barcode SVG content
-        const barcodeSVG = barcodeRef.current?.outerHTML || "";
-        
         // Generate the receipt HTML
-        const receiptHTML = generateReceiptHTML(barcodeSVG);
+        const receiptHTML = generateReceiptHTML();
         
         if (window.electronAPI?.printReceipt) {
           window.electronAPI.printReceipt(receiptHTML).catch((error) => {
@@ -481,16 +479,18 @@ const Receipt = ({ receiptData, onClose }) => {
 
             {/* Barcode */}
             <div className="mb-2 text-center">
-              <svg 
-                ref={barcodeRef} 
-                className="mx-auto" 
+              <div
+                ref={barcodeRef}
                 style={{ 
-                  maxWidth: "100%",
-                  display: "block",
-                  visibility: "visible",
-                  height: "60px"
+                  fontFamily: '"Code39Azalea", monospace',
+                  fontSize: "48px",
+                  lineHeight: "1",
+                  letterSpacing: "2px",
+                  marginBottom: "4px"
                 }}
-              ></svg>
+              >
+                {formatCode39(receiptData.uniqueString || "123456789000000000000")}
+              </div>
               <div
                 className="mt-1 font-mono"
                 style={{ 
@@ -521,6 +521,10 @@ const Receipt = ({ receiptData, onClose }) => {
 
       {/* Print Styles */}
       <style>{`
+        @font-face {
+          font-family: "Code39Azalea";
+          src: url("/Code39AzaleaRegular1.ttf") format("truetype");
+        }
         @media print {
           * {
             margin: 0;
@@ -553,11 +557,6 @@ const Receipt = ({ receiptData, onClose }) => {
             border-radius: 0 !important;
             background: white !important;
             border:3px solid #000;
-          }
-          .receipt-container svg {
-            visibility: visible !important;
-            display: block !important;
-            max-width: 100% !important;
           }
           .receipt-container > div {
             padding: 12px !important; /* 📌 PRINTER PADDING (Browser Print): Adjust this value for content padding inside the receipt */
