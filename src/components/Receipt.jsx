@@ -213,7 +213,7 @@ const Receipt = ({ receiptData, onClose }) => {
     }
     .barcode-text {
       font-family: "Code39Azalea", monospace;
-      font-size: 48px;
+      font-size: 80px;
       line-height: 1;
       letter-spacing: 2px;
       margin-bottom: 4px;
@@ -483,7 +483,7 @@ const Receipt = ({ receiptData, onClose }) => {
                 ref={barcodeRef}
                 style={{ 
                   fontFamily: '"Code39Azalea", monospace',
-                  fontSize: "48px",
+                  fontSize: "80px",
                   lineHeight: "1",
                   letterSpacing: "2px",
                   marginBottom: "4px"
