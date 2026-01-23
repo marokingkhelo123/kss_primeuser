@@ -6,6 +6,8 @@ import Landing from "./pages/Landing";
 import MyAccount from "./pages/MyAccount";
 import Transactions from "./pages/Transactions";
 import ResetPassword from "./pages/ResetPassword";
+import DailyReportReceipt from "./components/DailyReportReceipt";
+import { api } from "./utils/api";
 
 function App() {
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);
@@ -13,6 +15,8 @@ function App() {
   const [showMyAccount, setShowMyAccount] = useState(false);
   const [showTransactions, setShowTransactions] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showDailyReport, setShowDailyReport] = useState(false);
+  const [dailyReportData, setDailyReportData] = useState(null);
   const socketRef = useRef(null);
 
   const handleLoadingComplete = () => {
@@ -68,6 +72,37 @@ function App() {
 
   const handleCloseResetPassword = () => {
     setShowResetPassword(false);
+    setShowMyAccount(true); // Return to My Account page
+  };
+
+  const handleShowDailyReport = async () => {
+    try {
+      // Get user ID from localStorage
+      const storedUser = localStorage.getItem("user");
+      if (!storedUser) {
+        console.error("User not found");
+        return;
+      }
+      const user = JSON.parse(storedUser);
+      const userId = user._id;
+
+      // Fetch daily report data
+      const response = await api.post("/users/getDailyReport", { userId });
+      
+      if (response.data && response.data.data) {
+        setDailyReportData(response.data.data);
+        setShowDailyReport(true);
+        setShowMyAccount(false);
+      }
+    } catch (error) {
+      console.error("Error fetching daily report:", error);
+      // You might want to show an error popup here
+    }
+  };
+
+  const handleCloseDailyReport = () => {
+    setShowDailyReport(false);
+    setDailyReportData(null);
     setShowMyAccount(true); // Return to My Account page
   };
 
@@ -140,6 +175,7 @@ function App() {
           onLogout={handleLogout}
           onShowTransactions={handleShowTransactions}
           onShowResetPassword={handleShowResetPassword}
+          onShowDailyReport={handleShowDailyReport}
         />
       )}
       {showTransactions && (
@@ -147,6 +183,12 @@ function App() {
       )}
       {showResetPassword && (
         <ResetPassword onClose={handleCloseResetPassword} />
+      )}
+      {showDailyReport && dailyReportData && (
+        <DailyReportReceipt
+          reportData={dailyReportData}
+          onClose={handleCloseDailyReport}
+        />
       )}
     </>
   );

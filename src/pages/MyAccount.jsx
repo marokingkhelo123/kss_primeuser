@@ -10,7 +10,7 @@ import resetPassIcon from "../assets/images/4_my_account/ico-reset-pass@2x.png";
 import logOutIcon from "../assets/images/4_my_account/ico-log-out@2x.png";
 import { api } from "../utils/api";
 
-const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword }) => {
+const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword, onShowDailyReport }) => {
   const [username, setUsername] = useState("");
   const [userId, setUserId] = useState("");
   const [balance, setBalance] = useState(0);
@@ -147,6 +147,13 @@ const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword 
   const handleLogOut = () => {
     if (onLogout) {
       onLogout();
+    }
+  };
+
+  const handleDailyReport = () => {
+    // Navigate to Daily Report
+    if (onShowDailyReport) {
+      onShowDailyReport();
     }
   };
 
@@ -309,6 +316,34 @@ const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword 
               </div>
               <span className="text-black font-semibold text-lg">
                 Transactions
+              </span>
+            </button>
+
+            {/* Divider */}
+            <div className="h-20 w-0.5 bg-gray-400 mx-4"></div>
+
+            {/* Daily Report Button */}
+            <button
+              onClick={handleDailyReport}
+              className="flex flex-col items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity flex-1"
+            >
+              <div className="relative flex items-center justify-center h-10 w-10">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-full w-full text-black"
+                >
+                  <line x1="12" y1="2" x2="12" y2="22"></line>
+                  <path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"></path>
+                </svg>
+              </div>
+              <span className="text-black font-semibold text-lg">
+                Daily Report
               </span>
             </button>
 
