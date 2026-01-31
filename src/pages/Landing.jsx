@@ -146,6 +146,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const winnerPollingIntervalRef = useRef(null); // Track winner polling interval (deprecated, kept for cleanup)
   const lastWinnerGameIdRef = useRef(null); // Track game ID where winner was found
   const slotMachineAudioRef = useRef(null); // Track slot machine audio to stop it when needed
+  const hasPlayedSlotSoundRef = useRef(false); // Track if slot sound played this round
   const winnerDataRef = useRef(null); // Store winner data when received from API
   const isApiCallInProgressRef = useRef(false); // Track if API call is in progress
   const apiCallTimeoutRef = useRef(null); // Track timeout for sequential API calls
@@ -330,6 +331,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         numberReel: { currentIndex: numberIndex, isSpinning: false, targetIndex: numberIndex },
         multiplierReel: { ...prev.multiplierReel, isSpinning: true, targetIndex: null },
       }));
+      // Play win result sound starting at last 2 seconds
+      playWinResultSound();
     } else if (seconds === 1) {
       // Show last value (multiplier reel) at 1st second - stop all reels
       setSlotMachineState({
@@ -337,9 +340,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         numberReel: { currentIndex: numberIndex, isSpinning: false, targetIndex: numberIndex },
         multiplierReel: { currentIndex: multiplierIndex, isSpinning: false, targetIndex: multiplierIndex },
       });
-      // Stop spinning sound and play win result sound when all reels have stopped
-      stopSlotMachineSound();
-      playWinResultSound();
+      // Stop spinning sound when all reels have stopped
     }
   };
 
@@ -633,23 +634,43 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   };
 
   const playSlotMachineSound = () => {
-    // Stop any existing slot machine sound
+    // Reuse existing audio if possible to avoid play/pause race errors
     if (slotMachineAudioRef.current) {
-      slotMachineAudioRef.current.pause();
-      slotMachineAudioRef.current.currentTime = 0;
+      slotMachineAudioRef.current.loop = false;
+      if (slotMachineAudioRef.current.paused) {
+        slotMachineAudioRef.current.currentTime = 0;
+        slotMachineAudioRef.current.play().catch((error) => {
+          // Handle autoplay restrictions
+          console.log("Sound playback failed:", error);
+        });
+      }
+      return;
     }
-    // Play slot machine sound (loop it while spinning)
+
+    // Play slot machine sound once (no loop)
     const audio = new Audio(slotMachineSound);
-    audio.loop = true;
+    audio.loop = false;
+    audio.onended = () => {
+      if (slotMachineAudioRef.current === audio) {
+        slotMachineAudioRef.current = null;
+      }
+    };
     audio.play().catch((error) => {
-      // Handle autoplay restrictions
+      // Handle autoplay restrictions or play/pause race
+      if (
+        error?.name === "AbortError" ||
+        /interrupted by a call to pause/i.test(error?.message || "")
+      ) {
+        return;
+      }
       console.log("Sound playback failed:", error);
     });
     slotMachineAudioRef.current = audio;
   };
 
-  const stopSlotMachineSound = () => {
+  const stopSlotMachineSound = (force = false) => {
     if (slotMachineAudioRef.current) {
+      if (!force) return;
       slotMachineAudioRef.current.pause();
       slotMachineAudioRef.current.currentTime = 0;
       slotMachineAudioRef.current = null;
@@ -658,7 +679,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
   const playWinResultSound = () => {
     // Stop slot machine sound first
-    stopSlotMachineSound();
+    stopSlotMachineSound(true);
     // Play win result sound
     const audio = new Audio(winResultSound);
     audio.play().catch((error) => {
@@ -1223,7 +1244,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         winnerPollingIntervalRef.current = null;
       }
       // Stop slot machine sound on unmount
-      stopSlotMachineSound();
+      stopSlotMachineSound(true);
     };
   }, []);
 
@@ -1280,8 +1301,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         numberReel: { ...prev.numberReel, isSpinning: false },
         multiplierReel: { ...prev.multiplierReel, isSpinning: false },
       }));
-      // Stop slot machine sound when new game starts
-      stopSlotMachineSound();
+      // Reset slot sound tracking for the new round
+      hasPlayedSlotSoundRef.current = false;
 
       lastGameIdRef.current = currentGameId;
     }
@@ -1392,7 +1413,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           multiplierReel: { currentIndex: 0, isSpinning: true, targetIndex: null },
         }));
         // Play slot machine spinning sound
-        playSlotMachineSound();
+        if (!hasPlayedSlotSoundRef.current) {
+          playSlotMachineSound();
+          hasPlayedSlotSoundRef.current = true;
+        }
       } else {
         // We already have a winner for this game - clear any API timeouts
         if (apiCallTimeoutRef.current) {
@@ -1419,8 +1443,6 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           numberReel: { ...prev.numberReel, isSpinning: false },
           multiplierReel: { ...prev.multiplierReel, isSpinning: false },
         }));
-        // Stop slot machine sound when outside last 20 seconds
-        stopSlotMachineSound();
       }
     }
 
@@ -1430,8 +1452,6 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         clearTimeout(apiCallTimeoutRef.current);
         apiCallTimeoutRef.current = null;
       }
-      // Stop slot machine sound on cleanup
-      stopSlotMachineSound();
     };
   }, [remainingSeconds, currentGame]);
 
