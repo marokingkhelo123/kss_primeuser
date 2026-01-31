@@ -1610,14 +1610,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       <nav
         className="w-full h-16 flex items-center px-4 justify-between"
         style={{
-          background: "linear-gradient(to bottom, #c20001, #770304)",
+          background: "linear-gradient(to bottom, #0063cd, #4c017c)",
         }}
       >
         {/* Logo - KSS brand logo on the left side */}
         <img
           src={logo}
           alt="KSS Logo"
-          className="ml-5 h-12 w-auto object-contain"
+          className="ml-5 h-12 w-auto object-contain w90"
         />
 
         {/* Disclaimer text - "FOR AMUSEMENT ONLY" message */}
@@ -1637,7 +1637,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         <div className="relative flex items-center">
           <div
             className="relative"
-            style={{ marginTop: "15vh", marginLeft: "15vh" }}
+            style={{ marginTop: "15vh", marginLeft: "5vh" }}
           >
             <img
               src={timerIcon}
@@ -1790,16 +1790,16 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           />
 
           {/* Betting numbers grid - 3 rows x 4 columns */}
-          <div className="absolute inset-0 flex flex-col justify-center items-center pt-[6vh] pb-[6vh] px-[6vw]">
+          <div className="absolute inset-0 flex flex-col justify-center items-center pt-[6vh] pb-[6vh] px-[4vw]">
             {/* Betting grid */}
             <div className="grid grid-cols-4 gap-2 w-full h-full">
               <div className="flex flex-col items-center justify-center mt-[2vh]">
-                <span className="text-white text-[1vw] font-semibold w-full text-center">
+                <span className="text-white text-[1vw] sm-font w-full text-center">
                   1,2,5,6,9,10
                 </span>
                 <button 
-                  className={`bg-red-600 text-white px-[8%] py-[3%] rounded-full border-2 border-white hover:bg-red-700 transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-110 text-center ${
-                    (selectedButton || []).includes('red') ? "ring-4 ring-yellow-400" : ""
+                  className={`bg-red-600 text-white px-[8%] py-[1%] rounded-full border-2 border-white hover:bg-red-700 transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-105 text-center ${
+                    (selectedButton || []).includes('red') ? "ring-2 ring-yellow-400" : ""
                   } ${isBettingDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => handleButtonSelection('red')}
                   disabled={isBettingDisabled}
@@ -1807,13 +1807,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   RED
                 </button>
                 <div
-                  className={`relative w-full transition-transform ${
+                  className={`relative w-full transition-transform mt-[1vh] ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   } ${
                     isBettingNumberHighlighted(1)
-                      ? "border-4 border-yellow-400 rounded-lg"
+                      ? "border-2 border-yellow-400 rounded-lg"
                       : ""
                   }`}
                   onClick={() => !isBettingDisabled && handleBettingNumberSelection(1)}
@@ -1845,12 +1845,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 </div>
               </div>
               <div className="flex flex-col items-center justify-center mt-[2vh]">
-                <span className="text-white text-[1vw] font-semibold w-full text-center">
+                <span className="text-white text-[1vw] sm-font w-full text-center">
                   3,4,7,8,11,12
                 </span>
                 <button 
-                  className={`bg-gray-800 text-white px-[8%] py-[3%] rounded-full border-2 border-white hover:bg-black transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-110 text-center ${
-                    (selectedButton || []).includes('black') ? "ring-4 ring-yellow-400" : ""
+                  className={`bg-gray-800 text-white px-[8%] py-[1%] rounded-full border-2 border-white hover:bg-black transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-105 text-center ${
+                    (selectedButton || []).includes('black') ? "ring-2 ring-yellow-400" : ""
                   } ${isBettingDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => handleButtonSelection('black')}
                   disabled={isBettingDisabled}
@@ -1858,13 +1858,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   BLACK
                 </button>
                 <div
-                  className={`relative w-full transition-transform ${
+                  className={`relative w-full transition-transform mt-[1vh] ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   } ${
                     isBettingNumberHighlighted(2)
-                      ? "border-4 border-yellow-400 rounded-lg"
+                      ? "border-2 border-yellow-400 rounded-lg"
                       : ""
                   }`}
                   onClick={() => !isBettingDisabled && handleBettingNumberSelection(2)}
@@ -1896,12 +1896,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 </div>
               </div>
               <div className="flex flex-col items-center justify-center mt-[2vh]">
-                <span className="text-white text-[1vw] font-semibold w-full text-center">
+                <span className="text-white text-[1vw] sm-font w-full text-center">
                   1,3,5,7,9,11
                 </span>
                 <button 
-                  className={`bg-[#0ac2f6] text-white px-[8%] py-[3%] rounded-full border-2 border-white hover:bg-[#0288ad] transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-110 text-center ${
-                    (selectedButton || []).includes('odd') ? "ring-4 ring-yellow-400" : ""
+                  className={`bg-[#0ac2f6] text-white px-[8%] py-[1%] rounded-full border-2 border-white hover:bg-[#0288ad] transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-105 text-center ${
+                    (selectedButton || []).includes('odd') ? "ring-2 ring-yellow-400" : ""
                   } ${isBettingDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => handleButtonSelection('odd')}
                   disabled={isBettingDisabled}
@@ -1909,13 +1909,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   ODD
                 </button>
                 <div
-                  className={`relative w-full transition-transform ${
+                  className={`relative w-full transition-transform mt-[1vh] ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   } ${
                     isBettingNumberHighlighted(3)
-                      ? "border-4 border-yellow-400 rounded-lg"
+                      ? "border-2 border-yellow-400 rounded-lg"
                       : ""
                   }`}
                   onClick={() => !isBettingDisabled && handleBettingNumberSelection(3)}
@@ -1947,12 +1947,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 </div>
               </div>
               <div className="flex flex-col items-center justify-center mt-[2vh]">
-                <span className="text-white text-[1vw] font-semibold w-full text-center">
+                <span className="text-white text-[1vw] sm-font w-full text-center">
                   2,4,6,8,10,12
                 </span>
                 <button 
-                  className={`bg-[#8b04d2] text-white px-[8%] py-[3%] rounded-full border-2 border-white hover:bg-[#6a039e] transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-110 text-center ${
-                    (selectedButton || []).includes('even') ? "ring-4 ring-yellow-400" : ""
+                  className={`bg-[#8b04d2] text-white px-[8%] py-[1%] rounded-full border-2 border-white hover:bg-[#6a039e] transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-105 text-center ${
+                    (selectedButton || []).includes('even') ? "ring-2 ring-yellow-400" : ""
                   } ${isBettingDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => handleButtonSelection('even')}
                   disabled={isBettingDisabled}
@@ -1960,13 +1960,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   EVEN
                 </button>
                 <div
-                  className={`relative w-full transition-transform ${
+                  className={`relative w-full transition-transform mt-[1vh] ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   } ${
                     isBettingNumberHighlighted(4)
-                      ? "border-4 border-yellow-400 rounded-lg"
+                      ? "border-2 border-yellow-400 rounded-lg"
                       : ""
                   }`}
                   onClick={() => !isBettingDisabled && handleBettingNumberSelection(4)}
@@ -2001,10 +2001,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-full transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(5)
-                    ? "border-4 border-yellow-400 rounded-lg"
+                    ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
                 onClick={() => !isBettingDisabled && handleBettingNumberSelection(5)}
@@ -2014,7 +2014,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   alt="Bet Number 5"
                   className="w-full h-[15vh] object-fill"
                 />
-                <div className="absolute bottom-[18%] left-1/2 transform -translate-x-1/2 w-[60%] h-[20%] bg-black rounded-full flex items-center justify-center">
+                <div className="absolute bottom-[22%] left-1/2 transform -translate-x-1/2 w-[60%] h-[20%] bg-black rounded-full flex items-center justify-center">
                   <input
                     type="number"
                     value={betValues.bet5}
@@ -2038,10 +2038,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-full transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(6)
-                    ? "border-4 border-yellow-400 rounded-lg"
+                    ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
                 onClick={() => !isBettingDisabled && handleBettingNumberSelection(6)}
@@ -2075,10 +2075,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-full transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(7)
-                    ? "border-4 border-yellow-400 rounded-lg"
+                    ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
                 onClick={() => !isBettingDisabled && handleBettingNumberSelection(7)}
@@ -2112,10 +2112,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-full transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(8)
-                    ? "border-4 border-yellow-400 rounded-lg"
+                    ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
                 onClick={() => !isBettingDisabled && handleBettingNumberSelection(8)}
@@ -2149,10 +2149,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-full transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(9)
-                    ? "border-4 border-yellow-400 rounded-lg"
+                    ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
                 onClick={() => !isBettingDisabled && handleBettingNumberSelection(9)}
@@ -2186,10 +2186,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-full transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(10)
-                    ? "border-4 border-yellow-400 rounded-lg"
+                    ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
                 onClick={() => !isBettingDisabled && handleBettingNumberSelection(10)}
@@ -2223,10 +2223,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-full transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(11)
-                    ? "border-4 border-yellow-400 rounded-lg"
+                    ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
                 onClick={() => !isBettingDisabled && handleBettingNumberSelection(11)}
@@ -2260,10 +2260,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-full transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(12)
-                    ? "border-4 border-yellow-400 rounded-lg"
+                    ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
                 onClick={() => !isBettingDisabled && handleBettingNumberSelection(12)}
@@ -2307,14 +2307,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               className={`absolute object-contain transition-transform pointer-events-auto ${
                 isBettingDisabled 
                   ? "opacity-50 cursor-not-allowed" 
-                  : "hover:scale-110 cursor-pointer"
+                  : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow1') ? "ring-4 ring-yellow-400 rounded-lg" : ""
+                (selectedButton || []).includes('arrow1') ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
                 height: "auto",
-                top: "30%",
+                top: "28.5%",
                 right: "0%",
               }}
               onClick={() => !isBettingDisabled && handleButtonSelection('arrow1')}
@@ -2325,14 +2325,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               className={`absolute object-contain transition-transform pointer-events-auto ${
                 isBettingDisabled 
                   ? "opacity-50 cursor-not-allowed" 
-                  : "hover:scale-110 cursor-pointer"
+                  : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow2') ? "ring-4 ring-yellow-400 rounded-lg" : ""
+                (selectedButton || []).includes('arrow2') ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
                 height: "auto",
-                top: "52%",
+                top: "51.5%",
                 right: "0%",
               }}
               onClick={() => !isBettingDisabled && handleButtonSelection('arrow2')}
@@ -2343,14 +2343,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               className={`absolute object-contain transition-transform pointer-events-auto ${
                 isBettingDisabled 
                   ? "opacity-50 cursor-not-allowed" 
-                  : "hover:scale-110 cursor-pointer"
+                  : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow3') ? "ring-4 ring-yellow-400 rounded-lg" : ""
+                (selectedButton || []).includes('arrow3') ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
                 height: "auto",
-                top: "75%",
+                top: "76%",
                 right: "0%",
               }}
               onClick={() => !isBettingDisabled && handleButtonSelection('arrow3')}
@@ -2361,15 +2361,15 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               className={`absolute object-contain transition-transform pointer-events-auto ${
                 isBettingDisabled 
                   ? "opacity-50 cursor-not-allowed" 
-                  : "hover:scale-110 cursor-pointer"
+                  : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow4') ? "ring-4 ring-yellow-400 rounded-lg" : ""
+                (selectedButton || []).includes('arrow4') ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
                 height: "auto",
                 bottom: "0%",
-                left: "19.5%",
+                left: "15.5%",
               }}
               onClick={() => !isBettingDisabled && handleButtonSelection('arrow4')}
             />
@@ -2379,15 +2379,15 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               className={`absolute object-contain transition-transform pointer-events-auto ${
                 isBettingDisabled 
                   ? "opacity-50 cursor-not-allowed" 
-                  : "hover:scale-110 cursor-pointer"
+                  : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow5') ? "ring-4 ring-yellow-400 rounded-lg" : ""
+                (selectedButton || []).includes('arrow5') ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
                 height: "auto",
                 bottom: "0%",
-                left: "37.5%",
+                left: "36%",
               }}
               onClick={() => !isBettingDisabled && handleButtonSelection('arrow5')}
             />
@@ -2397,15 +2397,15 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               className={`absolute object-contain transition-transform pointer-events-auto ${
                 isBettingDisabled 
                   ? "opacity-50 cursor-not-allowed" 
-                  : "hover:scale-110 cursor-pointer"
+                  : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow6') ? "ring-4 ring-yellow-400 rounded-lg" : ""
+                (selectedButton || []).includes('arrow6') ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
                 height: "auto",
                 bottom: "0%",
-                left: "55.5%",
+                left: "56.5%",
               }}
               onClick={() => !isBettingDisabled && handleButtonSelection('arrow6')}
             />
@@ -2415,15 +2415,15 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               className={`absolute object-contain transition-transform pointer-events-auto ${
                 isBettingDisabled 
                   ? "opacity-50 cursor-not-allowed" 
-                  : "hover:scale-110 cursor-pointer"
+                  : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow7') ? "ring-4 ring-yellow-400 rounded-lg" : ""
+                (selectedButton || []).includes('arrow7') ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
                 height: "auto",
                 bottom: "0%",
-                left: "73.5%",
+                left: "77%",
               }}
               onClick={() => !isBettingDisabled && handleButtonSelection('arrow7')}
             />
@@ -2431,8 +2431,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         </div>
 
         {/* Row 2 */}
-        <div className="flex items-center justify-center text-xs text-white"></div>
-        <div className="flex items-center justify-center text-xs text-white"></div>
+        <div className="flex items-center justify-center text-white"></div>
+        <div className="flex items-center justify-center text-white"></div>
 
         {/* Row 3 */}
         <div
@@ -2443,14 +2443,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           }}
         >
           {/* DRAW TIME Banner */}
-          <div className="bg-amber-900 border-yellow-500 py-2 px-4">
+          <div className="bg-amber-900 border-yellow-500 py-1 px-2">
             <div className="text-yellow-400 font-bold text-center text-md">
               DRAW TIME
             </div>
           </div>
 
           {/* Running Game Time Display */}
-          <div className="bg-purple-800 border-t-2 border-yellow-500 py-2 px-4">
+          <div className="bg-purple-800 border-t-2 border-yellow-500 py-2 px-2">
             <div className="text-white font-bold text-center text-3xl">
               {runningGameTime || "--:--"}
             </div>
@@ -2458,10 +2458,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
           {/* Table Header */}
           <div className="bg-teal-800 border-t-2 border-yellow-500 py-2 px-4 flex">
-            <div className="flex-1 text-white font-bold text-md">TIME</div>
-            <div className="flex-1 text-white font-bold text-md text-right">
-              RESULT
-            </div>
+            <div className="flex-1 text-white font-bold text-md text-center">TIME</div>
+            <div className="flex-1 text-white font-bold text-md text-center"> RESULT </div>
           </div>
 
           {/* Table Rows */}
@@ -2474,18 +2472,18 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                       key={index}
                       className="bg-blue-600 border-b border-yellow-500"
                     >
-                      <td className="text-white text-sm py-2 px-4 border border-yellow-500">
+                      <td className="text-white text-sm px-2 border border-yellow-500 timeResult">
                         {draw.time}
                       </td>
-                      <td className="text-yellow-400 text-sm py-2 px-4 border border-yellow-500 text-right">
+                      <td className="text-yellow-400 text-sm px-2 border border-yellow-500 text-center">
                         {draw.result ? (
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-center gap-2">
                             <img
                               src={getDrawIcon(draw.result)}
                               alt={`Result ${draw.result}`}
-                              className="h-6 w-6 object-contain"
+                              className="imgResult object-contain"
                             />
-                            <span>{draw.multiplier}x</span>
+                            <span className="textMultiplier">{draw.multiplier}x</span>
                           </div>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -2530,7 +2528,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           <img
             src={playAndWin}
             alt="Play and Win"
-            className="w-full h-full object-fill"
+            className="w-full h-full object-fill betStatusText"
           />
           <div className="absolute inset-0 flex items-center justify-around ">
             <div className="text-white font-bold text-2xl">
@@ -2557,7 +2555,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-36 h-36 transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 }`}
                 onClick={() => !isBettingDisabled && handleRepeatClick()}
               >
@@ -2574,7 +2572,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-36 h-36 transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 }`}
                 onClick={() => !isBettingDisabled && handleDoubleClick()}
               >
@@ -2591,7 +2589,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-36 h-36 transition-transform ${
                   isBettingDisabled 
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 }`}
                 onClick={() => {
                   playAllBtnSound();
@@ -2620,7 +2618,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 className={`relative w-36 h-36 transition-transform ${
                   isBettingDisabled || isBettingInProgress
                     ? "opacity-50 cursor-not-allowed" 
-                    : "cursor-pointer hover:scale-110"
+                    : "cursor-pointer hover:scale-105"
                 }`}
                 onClick={() => !isBettingDisabled && !isBettingInProgress && handleBetClick()}
               >
@@ -2650,7 +2648,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(10)}
                 />
@@ -2660,7 +2658,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(20)}
                 />
@@ -2670,7 +2668,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(50)}
                 />
@@ -2680,7 +2678,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(100)}
                 />
@@ -2690,7 +2688,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(500)}
                 />
@@ -2700,7 +2698,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
                     isBettingDisabled 
                       ? "opacity-50 cursor-not-allowed" 
-                      : "cursor-pointer hover:scale-110"
+                      : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(1000)}
                 />

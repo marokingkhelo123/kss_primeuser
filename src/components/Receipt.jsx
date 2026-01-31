@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 /**
  * RECEIPT PRINTER MARGINS/PADDING SETTINGS:
@@ -23,12 +23,23 @@ import React, { useEffect, useRef } from "react";
 const Receipt = ({ receiptData, onClose }) => {
   const barcodeRef = useRef(null);
   const printedReceiptsRef = useRef(new Set());
+  const [barcodeFontDataUrl, setBarcodeFontDataUrl] = useState(null);
 
   // Format uniqueString for Code39 barcode (requires * at start and end)
   const formatCode39 = (text) => {
     if (!text) return "*";
     // Code39 format: *data*
     return `*${text.toUpperCase()}*`;
+  };
+
+  const formatBarcodeValue = (value) => {
+    if (!value) return "1234567890";
+    return value.toString();
+  };
+
+  const formatOrderNumber = (orderNumber) => {
+    if (!orderNumber) return "000000001";
+    return orderNumber.toString().slice(-9);
   };
 
   // Map backend bet keys to numbers
@@ -71,20 +82,43 @@ const Receipt = ({ receiptData, onClose }) => {
     return columns;
   };
 
-  // Load barcode font from BarcodeFonts folder
+  const arrayBufferToBase64 = (buffer) => {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+    return window.btoa(binary);
+  };
+
+  // Load barcode font from public folder and store as data URL for printing
   useEffect(() => {
     const fontPath = "/Code39AzaleaRegular1.ttf"; // Font is in public folder
     const fontFace = new FontFace(
       "Code39Azalea",
       `url(${fontPath})`
     );
-    
+
+    fetch(fontPath)
+      .then((response) => response.arrayBuffer())
+      .then((buffer) => {
+        const base64 = arrayBufferToBase64(buffer);
+        setBarcodeFontDataUrl(`data:font/ttf;base64,${base64}`);
+      })
+      .catch((error) => {
+        console.error("Error loading barcode font data:", error);
+      });
+
     fontFace.load().then((loadedFont) => {
       document.fonts.add(loadedFont);
     }).catch((error) => {
       console.error("Error loading barcode font:", error);
     });
   }, []);
+
+  const receiptWidthMm = 74;
 
   // Generate receipt HTML for printing (matches browser version exactly)
   const generateReceiptHTML = () => {
@@ -93,10 +127,11 @@ const Receipt = ({ receiptData, onClose }) => {
     const maxColumnLength = Math.max(...betColumns.map(col => col.length));
 
     const fontSizes = {
-      king: 40,
-      sm: 18,
-      xs: 18,
-      base: 18,
+      king: 27,
+      sm: 13,
+      xs: 14,
+      base: 14,
+      orderId: 13,
     };
 
     // Generate bet rows HTML (matching browser version structure)
@@ -115,6 +150,10 @@ const Receipt = ({ receiptData, onClose }) => {
       })
       .join("");
 
+    const barcodeFontSrc = barcodeFontDataUrl
+      ? `url("${barcodeFontDataUrl}")`
+      : `url("/Code39AzaleaRegular1.ttf")`;
+
     return `<!DOCTYPE html>
 <html>
 <head>
@@ -122,7 +161,7 @@ const Receipt = ({ receiptData, onClose }) => {
   <style>
     * {
       margin: 0;
-      padding: 0;
+      padding: 2px;
       box-sizing: border-box;
     }
     html, body {
@@ -135,25 +174,27 @@ const Receipt = ({ receiptData, onClose }) => {
       font-family: Arial, sans-serif;
       width: 100%;
       max-width: 100%;
-      margin: 0 auto;
+      margin: 0;
       padding: 0;
       background: white;
     }
     .receipt-container {
-      width: 88%;
-      max-width: 100%;
-      margin: 0 auto;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: ${receiptWidthMm}mm;
+      max-width: ${receiptWidthMm}mm;
+      margin: 0;
       padding: 0;
       background: white;
-      border: 3px solid #000;
     }
     .receipt-content {
-      padding: 12px; /* 📌 PRINTER PADDING: Adjust this value (top right bottom left) or use specific sides like padding: 10px 5px; */
+      padding: 8px; /* 📌 PRINTER PADDING: Adjust this value (top right bottom left) or use specific sides like padding: 10px 5px; */
       background: white;
       font-family: Arial, sans-serif;
       width: 100%;
       max-width: 100%;
-      margin: 0 auto;
+      margin: 0;
     }
     .header {
       text-align: center;
@@ -179,6 +220,9 @@ const Receipt = ({ receiptData, onClose }) => {
     .info-right {
       text-align: right;
     }
+    .order-number {
+      font-size: ${fontSizes.orderId}px;
+    }
     .bet-header {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -192,9 +236,12 @@ const Receipt = ({ receiptData, onClose }) => {
       margin-bottom: 8px;
     }
     .total-separator {
-      border: 1px dotted #000;
-      display: block;
+      font-family: monospace;
+      font-size: ${fontSizes.xs}px;
+      line-height: 1;
+      letter-spacing: 1px;
       margin: 0;
+      text-align: center;
     }
     .total {
       font-weight: bold;
@@ -213,11 +260,11 @@ const Receipt = ({ receiptData, onClose }) => {
     }
     .barcode-text {
       font-family: "Code39Azalea", monospace;
-      font-size: 120px;
-      line-height: 1;
-      letter-spacing: 5px;
-      margin-bottom: 4px;
-    }
+      font-size: 99px;
+      height: 45px;
+      overflow: hidden;
+      }
+
     .barcode-label {
       margin-top: 4px;
       font-family: monospace;
@@ -233,12 +280,12 @@ const Receipt = ({ receiptData, onClose }) => {
       line-height: 1.2;
     }
     @page {
-      size: auto;
-      margin: 0; /* 📌 PRINTER PAGE MARGIN (Electron): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
+      size: ${receiptWidthMm}mm auto;
+      margin: 0 0 0 2mm; /* 📌 PRINTER PAGE MARGIN (Electron): left 2mm */
     }
     @font-face {
       font-family: "Code39Azalea";
-      src: url("/Code39AzaleaRegular1.ttf") format("truetype");
+      src: ${barcodeFontSrc} format("truetype");
     }
   </style>
 </head>
@@ -246,7 +293,7 @@ const Receipt = ({ receiptData, onClose }) => {
   <div class="receipt-container">
     <div class="receipt-content">
       <div class="header">
-        <h2>King Spinner</h2>
+        <h2>WinZooo</h2>
       </div>
       
       <div class="info-row">
@@ -255,7 +302,7 @@ const Receipt = ({ receiptData, onClose }) => {
           <div><strong>Date</strong> ${receiptData.date || "01/01/2024"}</div>
         </div>
         <div class="info-right">
-          <div><strong>Oder No.</strong> ${receiptData.orderNumber || "0000001"}</div>
+          <div><strong>Oder No.</strong> <span class="order-number">${formatOrderNumber(receiptData.orderNumber)}</span></div>
           ${receiptData.drawTime ? `<div><strong>Draw Time -</strong> ${receiptData.drawTime}</div>` : ""}
         </div>
       </div>
@@ -270,7 +317,7 @@ const Receipt = ({ receiptData, onClose }) => {
         ${betRowsHTML}
       </div>
       
-      <hr class="total-separator" />
+      <div class="total-separator">-------------------</div>
       <div class="total">
         Total Pts - ${receiptData.totalBetPoints?.toFixed(2) || "0.00"}
       </div>
@@ -280,8 +327,8 @@ const Receipt = ({ receiptData, onClose }) => {
       </div>
       
       <div class="barcode-container">
-        <div class="barcode-text">${formatCode39(receiptData.uniqueString || "123456789000000000000")}</div>
-        <div class="barcode-label">${receiptData.uniqueString || "123456789000000000000"}</div>
+        <div class="barcode-text">${formatCode39(formatBarcodeValue(receiptData.uniqueString || "1234567"))}</div>
+        <div class="barcode-label">${formatBarcodeValue(receiptData.uniqueString || "1234567")}</div>
       </div>
       
       <div class="footer">
@@ -295,7 +342,7 @@ const Receipt = ({ receiptData, onClose }) => {
 
   // Auto-print after barcode is ready
   useEffect(() => {
-    if (!receiptData) return;
+    if (!receiptData || !barcodeFontDataUrl) return;
 
     // Use orderNumber or uniqueString as unique identifier
     const receiptId = receiptData.orderNumber || receiptData.uniqueString || Date.now().toString();
@@ -338,7 +385,7 @@ const Receipt = ({ receiptData, onClose }) => {
     }, 600);
 
     return () => clearTimeout(printTimer);
-  }, [receiptData, onClose]);
+  }, [receiptData, barcodeFontDataUrl, onClose]);
 
   const betDetails = formatBetDetails(receiptData?.betAmounts || {});
   const betColumns = distributeBetsIntoColumns(betDetails);
@@ -347,10 +394,11 @@ const Receipt = ({ receiptData, onClose }) => {
   if (!receiptData) return null;
 
   const fontSizes = {
-    king: 40,
-    sm: 18,
-    xs: 18,
-    base: 18,
+    king: 34,
+    sm: 16,
+    xs: 16,
+    base: 16,
+    orderId: 14,
   };
 
   return (
@@ -360,21 +408,21 @@ const Receipt = ({ receiptData, onClose }) => {
         style={{ 
           position: "absolute",
           left: "-9999px",
-          width: "auto",
-          maxWidth: "100%",
+          width: `${receiptWidthMm}mm`,
+          maxWidth: `${receiptWidthMm}mm`,
           visibility: "hidden",
           display: "block"
         }}
       >
           {/* Receipt Content */}
-          {/* 📌 VISUAL PADDING (on screen only): Tailwind classes p-4 (16px) and print:p-3 (12px) - For actual print margins, see @media print styles below */}
+          {/* 📌 VISUAL PADDING (on screen only): Tailwind classes p-3 (12px) and print:p-2 (8px) - For actual print margins, see @media print styles below */}
           <div
-            className="bg-white p-4 print:p-3"
+            className="bg-white p-3 print:p-2"
             style={{ 
               fontFamily: "Arial, sans-serif",
               width: "100%",
               maxWidth: "100%",
-              margin: "0 auto"
+              margin: "0"
             }}
           >
             {/* Header - King Title */}
@@ -388,7 +436,7 @@ const Receipt = ({ receiptData, onClose }) => {
                   lineHeight: "1.2"
                 }}
               >
-                King Spinner
+               WinZooo
               </h2>
             </div>
 
@@ -417,8 +465,8 @@ const Receipt = ({ receiptData, onClose }) => {
                   <span className="font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
                     Oder No.{" "}
                   </span>
-                  <span style={{ fontSize: `${fontSizes.sm}px` }}>
-                    {receiptData.orderNumber || "0000001"}
+                  <span style={{ fontSize: `${fontSizes.orderId}px` }}>
+                    {formatOrderNumber(receiptData.orderNumber)}
                   </span>
                 </div>
                 {receiptData.drawTime && (
@@ -463,7 +511,16 @@ const Receipt = ({ receiptData, onClose }) => {
             </div>
 
             {/* Total Points */}
-            <hr style={{ border:"1px dotted #000", display:"block" }} />
+            <div style={{
+              fontFamily: "monospace",
+              fontSize: `${fontSizes.xs}px`,
+              lineHeight: "1",
+              letterSpacing: "1px",
+              textAlign: "center",
+              margin: "0"
+            }}>
+              -------------------
+            </div>
             <div className="mb-2 mt-2">
               <div className="font-bold" style={{ fontSize: `${fontSizes.sm}px` }}>
                 Total Pts - {receiptData.totalBetPoints?.toFixed(2) || "0.00"}
@@ -483,13 +540,13 @@ const Receipt = ({ receiptData, onClose }) => {
                 ref={barcodeRef}
                 style={{ 
                   fontFamily: '"Code39Azalea", monospace',
-                  fontSize: "120px",
+                  fontSize: "72px",
                   lineHeight: "1",
-                  letterSpacing: "5px",
+                  letterSpacing: "4px",
                   marginBottom: "4px"
                 }}
               >
-                {formatCode39(receiptData.uniqueString || "123456789000000000000")}
+                {formatCode39(formatBarcodeValue(receiptData.uniqueString || "1234567"))}
               </div>
               <div
                 className="mt-1 font-mono"
@@ -499,7 +556,7 @@ const Receipt = ({ receiptData, onClose }) => {
                   lineHeight: "1.2"
                 }}
               >
-                {receiptData.uniqueString || "123456789000000000000"}
+                {formatBarcodeValue(receiptData.uniqueString || "1234567")}
               </div>
             </div>
 
@@ -546,25 +603,24 @@ const Receipt = ({ receiptData, onClose }) => {
           }
           .receipt-container {
             position: fixed !important;
-            left: 50% !important;
+            left: 0 !important;
             top: 0 !important;
-            transform: translateX(-50%) !important;
-            width: 88% !important;
-            max-width: 100% !important;
+            transform: none !important;
+            width: ${receiptWidthMm}mm !important;
+            max-width: ${receiptWidthMm}mm !important;
             box-shadow: none !important;
             margin: 0 !important;
             padding: 0 !important;
             border-radius: 0 !important;
             background: white !important;
-            border:3px solid #000;
           }
           .receipt-container > div {
-            padding: 12px !important; /* 📌 PRINTER PADDING (Browser Print): Adjust this value for content padding inside the receipt */
+            padding: 8px !important; /* 📌 PRINTER PADDING (Browser Print): Adjust this value for content padding inside the receipt */
             background: white !important;
           }
           @page {
-            size: auto;
-            margin: 0; /* 📌 PRINTER PAGE MARGIN (Browser Print): Adjust all sides or use margin: 10mm 5mm; (top/bottom left/right) */
+            size: ${receiptWidthMm}mm auto;
+            margin: 0 0 0 2mm; /* 📌 PRINTER PAGE MARGIN (Browser Print): left 2mm */
           }
         }
       `}</style>
@@ -573,4 +629,3 @@ const Receipt = ({ receiptData, onClose }) => {
 };
 
 export default Receipt;
-

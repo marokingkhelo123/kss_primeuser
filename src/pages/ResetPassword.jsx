@@ -193,14 +193,14 @@ const ResetPassword = ({ onClose }) => {
       <nav
         className="w-full h-16 flex items-center px-4 justify-between"
         style={{
-          background: "linear-gradient(to bottom, #c20001, #770304)",
+          background: "linear-gradient(to bottom, #0063cd, #4c017c)",
         }}
       >
         {/* Logo - KSS brand logo on the left side */}
         <img
           src={logo}
           alt="KSS Logo"
-          className="ml-5 h-12 w-auto object-contain"
+          className="ml-5 h-12 w-auto object-contain w90"
         />
 
         {/* Disclaimer text - "FOR AMUSEMENT ONLY" message */}
@@ -266,13 +266,10 @@ const ResetPassword = ({ onClose }) => {
 
       {/* Main Content Area - Yellow to Orange Gradient */}
       <div
-        className="flex flex-col items-center min-h-screen p-8"
-        style={{
-          background: "linear-gradient(to bottom, #FFD700, #FF8C00)",
-        }}
+        className="flex flex-col items-center min-h-screen90 p-8" 
       >
         {/* Back Button */}
-        <div className="w-full max-w-5xl mb-4">
+        <div className="w-full max-w-5xl">
           <button
             onClick={() => {
               if (onClose) {
@@ -287,14 +284,17 @@ const ResetPassword = ({ onClose }) => {
         </div>
 
         {/* Reset Password Panel - Light beige background */}
+
+         <h1 className="text-4xl font-bold text-white mb-10 text-center">
+            Reset Password
+          </h1>
+
         <div
-          className="rounded-lg p-10 w-full max-w-5xl shadow-2xl"
+          className="rounded-lg p-10 w-full max-w-2xl shadow-2xl"
           style={{ backgroundColor: "#F5E6D3" }}
         >
           {/* Reset Password Title */}
-          <h1 className="text-5xl font-bold text-orange-600 mb-10 text-center">
-            Reset Password
-          </h1>
+         
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">

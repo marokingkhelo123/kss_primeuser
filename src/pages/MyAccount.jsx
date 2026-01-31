@@ -171,14 +171,14 @@ const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword,
       <nav
         className="w-full h-16 flex items-center px-4 justify-between"
         style={{
-          background: "linear-gradient(to bottom, #c20001, #770304)",
+          background: "linear-gradient(to bottom, #0063cd, #4c017c)",
         }}
       >
         {/* Logo - KSS brand logo on the left side */}
         <img
           src={logo}
           alt="KSS Logo"
-          className="ml-5 h-12 w-auto object-contain"
+          className="ml-5 h-12 w-auto object-contain w90"
         />
 
         {/* Disclaimer text - "FOR AMUSEMENT ONLY" message */}
@@ -237,13 +237,11 @@ const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword,
 
       {/* Main Content Area - Yellow to Orange Gradient */}
       <div
-        className="flex flex-col items-center justify-center min-h-screen p-8"
-        style={{
-          background: "linear-gradient(to bottom, #FFD700, #FF8C00)",
-        }}
+        className="flex flex-col items-center justify-center min-h-screen90 p-8"
+        
       >
         {/* Back Button */}
-        <div className="w-full max-w-5xl mb-4">
+        <div className="w-full max-w-5xl">
           <button
             onClick={() => {
               if (onClose) {
@@ -258,7 +256,7 @@ const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword,
         </div>
 
         {/* My Account Title */}
-        <h1 className="text-5xl font-bold text-orange-600 mb-12 mt-4">
+        <h1 className="text-4xl font-bold text-white mb-12">
           My Account
         </h1>
 
@@ -275,7 +273,7 @@ const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword,
                 Balance Points
               </span>
               <div
-                className="rounded-lg px-12 py-8 flex items-center justify-center w-full max-w-xs"
+                className="rounded-lg px-12 py-4 flex items-center justify-center w-full max-w-xs"
                 style={{ backgroundColor: "#22C55E" }}
               >
                 <span className="text-white font-bold text-6xl">
@@ -290,7 +288,7 @@ const MyAccount = ({ onClose, onLogout, onShowTransactions, onShowResetPassword,
                 Winning Points
               </span>
               <div
-                className="rounded-lg px-12 py-8 flex items-center justify-center w-full max-w-xs"
+                className="rounded-lg px-12 py-4 flex items-center justify-center w-full max-w-xs"
                 style={{ backgroundColor: "#A855F7" }}
               >
                 <span className="text-white font-bold text-6xl">

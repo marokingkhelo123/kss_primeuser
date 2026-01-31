@@ -11,10 +11,10 @@ const DailyReportReceipt = ({ reportData, onClose }) => {
   // Generate receipt HTML for printing
   const generateReceiptHTML = () => {
     const fontSizes = {
-      king: 40,
-      sm: 18,
-      xs: 18,
-      base: 18,
+      king: 18,
+      sm: 14,
+      xs: 14,
+      base: 14,
     };
 
     return `<!DOCTYPE html>
@@ -126,7 +126,7 @@ const DailyReportReceipt = ({ reportData, onClose }) => {
   <div class="receipt-container">
     <div class="receipt-content">
       <div class="header">
-        <h2>Today's game report</h2>
+        <h2>Today's Game Report</h2>
       </div>
       
       <div class="info-row">

@@ -94,7 +94,14 @@ ipcMain.handle('print-receipt', async (event, receiptHTML) => {
           silent: true,
           printBackground: true,
           deviceName,
-          // Page size is handled by CSS @page rule in the HTML
+          margins: {
+            marginType: 'none',
+          },
+          pageSize: {
+            width: 80000,
+            height: 327600,
+          },
+          scaleFactor: 100,
         }
 
         printWindow.webContents.print(printOptions, (success, errorType) => {
@@ -138,4 +145,3 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import LoadingScreen from "./components/LoadingScreen";
 import Login from "./pages/Login";
@@ -76,11 +77,13 @@ function App() {
   };
 
   const handleShowDailyReport = async () => {
+    const toastId = toast.loading("Loading daily report...");
     try {
       // Get user ID from localStorage
       const storedUser = localStorage.getItem("user");
       if (!storedUser) {
         console.error("User not found");
+        toast.error("User not logged in. Please login again.", { id: toastId });
         return;
       }
       const user = JSON.parse(storedUser);
@@ -93,10 +96,13 @@ function App() {
         setDailyReportData(response.data.data);
         setShowDailyReport(true);
         setShowMyAccount(false);
+        toast.success("Daily report ready.", { id: toastId });
+      } else {
+        toast.error("No daily report data available.", { id: toastId });
       }
     } catch (error) {
       console.error("Error fetching daily report:", error);
-      // You might want to show an error popup here
+      toast.error("Failed to load daily report. Please try again.", { id: toastId });
     }
   };
 

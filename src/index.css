@@ -12,12 +12,13 @@ body {
 }
 
 .backdrop-blur-lg{
-  background: #ffffff8a;
+  background: #fff;
   border: 1px solid #fff;
 }
 
 .input-text-color{
   color: #42005d;
+  border: 1px solid #de97fb;
 }
 
 .page-login .logo-login{
@@ -37,5 +38,43 @@ body {
  
 .text-red-200 { 
   color: #c60000;
+}
+
+.timeResult{
+  font-weight: bold;
+  font-size: 16px;
+  text-align: center;
+}
+
+.imgResult{
+  width: 36px;
+}
+
+.textMultiplier{
+  font-weight: bold;
+  font-size: 18px; 
+}
+
+.betStatusText{
+  height: 63px;
+  margin-top: -4px;
+}
+
+.sm-font{
+  font-size: 9px;
+  margin-bottom: 3px;
+}
+
+.w90{
+  width: 90px;
+}
+
+.min-h-screen90 {
+    min-height: 90vh;
+}
+
+.h-504{
+    height: 504px;
+    overflow: auto;
 }
 

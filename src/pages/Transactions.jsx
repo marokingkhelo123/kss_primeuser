@@ -222,14 +222,14 @@ const Transactions = ({ onClose }) => {
       <nav
         className="w-full h-16 flex items-center px-4 justify-between"
         style={{
-          background: "linear-gradient(to bottom, #c20001, #770304)",
+          background: "linear-gradient(to bottom, #0063cd, #4c017c)",
         }}
       >
         {/* Logo - KSS brand logo on the left side */}
         <img
           src={logo}
           alt="KSS Logo"
-          className="ml-5 h-12 w-auto object-contain"
+          className="ml-5 h-12 w-auto object-contain w90"
         />
 
         {/* Disclaimer text - "FOR AMUSEMENT ONLY" message */}
@@ -288,13 +288,10 @@ const Transactions = ({ onClose }) => {
 
       {/* Main Content Area - Yellow to Orange Gradient */}
       <div
-        className="flex flex-col items-center min-h-screen p-8"
-        style={{
-          background: "linear-gradient(to bottom, #FFD700, #FF8C00)",
-        }}
+        className="flex flex-col items-center min-h-screen90 p-8" 
       >
         {/* Back Button */}
-        <div className="w-full max-w-6xl mb-4">
+        <div className="w-full max-w-6xl">
           <button
             onClick={() => {
               if (onClose) {
@@ -309,13 +306,13 @@ const Transactions = ({ onClose }) => {
         </div>
 
         {/* Transactions Title */}
-        <h1 className="text-5xl font-bold text-orange-600 mb-8 mt-4">
+        <h1 className="text-4xl font-bold text-white mb-8">
           Transactions
         </h1>
 
         {/* Transactions Panel - Light beige background */}
         <div
-          className="rounded-lg p-8 w-full max-w-6xl shadow-2xl"
+          className="rounded-lg p-8 w-full max-w-6xl shadow-2xl h-504"
           style={{ backgroundColor: "#F5E6D3" }}
         >
           {loading ? (

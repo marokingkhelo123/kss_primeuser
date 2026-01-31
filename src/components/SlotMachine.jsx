@@ -106,9 +106,9 @@ const SlotMachine = ({
 }) => {
   const defaultPositions = useMemo(
     () => ({
-      picture: { width: "15%", height: "18%", right: "65%", bottom: "14%" },
-      number: { width: "15%", height: "18%", right: "43%", bottom: "14%" },
-      multiplier: { width: "15%", height: "18%", right: "20%", bottom: "14%" },
+      picture: { width: "15%", height: "18%", right: "68%", bottom: "12%" },
+      number: { width: "15%", height: "18%", right: "43%", bottom: "12%" },
+      multiplier: { width: "15%", height: "18%", right: "17%", bottom: "12%" },
       ...positions,
     }),
     [positions]
