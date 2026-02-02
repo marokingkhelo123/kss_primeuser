@@ -119,6 +119,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     bet12: "",
   });
   const [selectedBettingNumber, setSelectedBettingNumber] = useState([]); // Array to support multiple number selections (1-12)
+  const [shouldClearNumbersOnNextSelect, setShouldClearNumbersOnNextSelect] = useState(false); // Clear previous selection after placing a bet
   const [selectedButton, setSelectedButton] = useState([]); // Array to support multiple button selections: 'red', 'black', 'odd', 'even', 'arrow1-7'
   const [lastBetValues, setLastBetValues] = useState(null); // Store last bet values for REPEAT functionality
   const [isBettingDisabled, setIsBettingDisabled] = useState(false); // Track if betting is disabled (last 20 seconds)
@@ -259,6 +260,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     return mapping[bettingNumber] || null;
   };
 
+  const MAX_BET_VALUE = 9990;
+
   // Mapping of button selections to bet keys
   const buttonBetMapping = {
     red: ["bet1", "bet2", "bet5", "bet6", "bet9", "bet10"],
@@ -277,10 +280,20 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   // Helper function to add coin value to bet keys
   const addCoinToBets = (betKeys, coinValue) => {
     const updatedBetValues = { ...betValues };
+    let hasExceededMax = false;
     betKeys.forEach((betKey) => {
       const currentValue = updatedBetValues[betKey] || "";
       const currentNumber = currentValue === "" ? 0 : Number(currentValue);
-      updatedBetValues[betKey] = (currentNumber + coinValue).toString();
+      const nextValue = currentNumber + coinValue;
+      if (nextValue > MAX_BET_VALUE) {
+        if (!hasExceededMax) {
+          toast.error("Max bet limit is 9990 only.");
+          hasExceededMax = true;
+        }
+        updatedBetValues[betKey] = MAX_BET_VALUE.toString();
+        return;
+      }
+      updatedBetValues[betKey] = nextValue.toString();
     });
     setBetValues(updatedBetValues);
   };
@@ -464,6 +477,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
     // Toggle number selection: if already selected, remove it; otherwise add it
     setSelectedBettingNumber(prev => {
+      if (shouldClearNumbersOnNextSelect) {
+        return [number];
+      }
       const prevArray = prev || [];
       if (prevArray.includes(number)) {
         return prevArray.filter(num => num !== number);
@@ -471,6 +487,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         return [...prevArray, number];
       }
     });
+    if (shouldClearNumbersOnNextSelect) {
+      setShouldClearNumbersOnNextSelect(false);
+    }
     setSelectedButton([]);
   };
 
@@ -496,21 +515,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       });
       // Add coin to all collected bet keys
       addCoinToBets(Array.from(allBetKeys), coinValue);
+      setShouldClearNumbersOnNextSelect(true);
       return;
     }
 
     // If specific betting numbers are selected, add coin to all selected bets
     if (selectedBettingNumber && selectedBettingNumber.length > 0) {
-      const updatedBetValues = { ...betValues };
-      selectedBettingNumber.forEach((number) => {
-        const bettingKey = getBettingKey(number);
-        if (bettingKey) {
-          const currentValue = updatedBetValues[bettingKey] || "";
-          const currentNumber = currentValue === "" ? 0 : Number(currentValue);
-          updatedBetValues[bettingKey] = (currentNumber + coinValue).toString();
-        }
-      });
-      setBetValues(updatedBetValues);
+      const betKeys = selectedBettingNumber
+        .map((number) => getBettingKey(number))
+        .filter(Boolean);
+      if (betKeys.length > 0) {
+        addCoinToBets(betKeys, coinValue);
+        setShouldClearNumbersOnNextSelect(true);
+      }
     }
   };
 
@@ -554,6 +571,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       return;
     }
 
+    if (numValue > MAX_BET_VALUE) {
+      toast.error("Max bet limit is 9990 only.");
+      setBetValues((prev) => ({ ...prev, [betKey]: "" }));
+      return;
+    }
+
     // Check if it's a multiple of 10
     if (numValue % 10 !== 0) {
       toast.error("Bet amount must be a multiple of 10.");
@@ -564,6 +587,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
     // Update the bet value if valid
     setBetValues((prev) => ({ ...prev, [betKey]: value.toString() }));
+    setShouldClearNumbersOnNextSelect(true);
   };
 
   // Fetch user balance from API

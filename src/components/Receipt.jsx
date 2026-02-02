@@ -23,6 +23,7 @@ import React, { useEffect, useRef, useState } from "react";
 const Receipt = ({ receiptData, onClose }) => {
   const barcodeRef = useRef(null);
   const printedReceiptsRef = useRef(new Set());
+  const receiptIdRef = useRef(null);
   const [barcodeFontDataUrl, setBarcodeFontDataUrl] = useState(null);
 
   // Format uniqueString for Code39 barcode (requires * at start and end)
@@ -340,12 +341,37 @@ const Receipt = ({ receiptData, onClose }) => {
 </html>`;
   };
 
-  // Auto-print after barcode is ready
+  // Track a stable receipt id to prevent duplicate prints
   useEffect(() => {
-    if (!receiptData || !barcodeFontDataUrl) return;
+    if (!receiptData) return;
+    const stableId =
+      receiptData.orderNumber ||
+      receiptData.uniqueString ||
+      receiptData.betId ||
+      receiptData._id ||
+      receiptData.id ||
+      null;
+
+    if (stableId) {
+      receiptIdRef.current = stableId.toString();
+    } else if (!receiptIdRef.current) {
+      receiptIdRef.current = `receipt-${Date.now()}`;
+    }
+  }, [receiptData]);
+
+  // Auto-print after receipt data is ready
+  useEffect(() => {
+    if (!receiptData) return;
 
     // Use orderNumber or uniqueString as unique identifier
-    const receiptId = receiptData.orderNumber || receiptData.uniqueString || Date.now().toString();
+    const receiptId =
+      receiptIdRef.current ||
+      receiptData.orderNumber ||
+      receiptData.uniqueString ||
+      receiptData.betId ||
+      receiptData._id ||
+      receiptData.id ||
+      "receipt-unknown";
     
     // Skip if this receipt has already been printed
     if (printedReceiptsRef.current.has(receiptId)) {
@@ -379,10 +405,10 @@ const Receipt = ({ receiptData, onClose }) => {
       }, 500);
     };
 
-    // Wait for barcode to be generated before printing
+    // Wait briefly for font load; print even if it never arrives
     const printTimer = setTimeout(() => {
       triggerPrint();
-    }, 600);
+    }, barcodeFontDataUrl ? 600 : 900);
 
     return () => clearTimeout(printTimer);
   }, [receiptData, barcodeFontDataUrl, onClose]);
