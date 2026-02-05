@@ -16,6 +16,8 @@ const createWindow = () => {
     height: 900,
     minWidth: 1200,
     minHeight: 800,
+    fullscreen: true,
+    autoHideMenuBar: true,
     show: false,
     webPreferences: {
       contextIsolation: true,

@@ -261,6 +261,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   };
 
   const MAX_BET_VALUE = 9990;
+  const MAX_BET_INPUT_LENGTH = 4;
 
   // Mapping of button selections to bet keys
   const buttonBetMapping = {
@@ -529,6 +530,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         setShouldClearNumbersOnNextSelect(true);
       }
     }
+  };
+
+  const handleBetInputChange = (betKey, value) => {
+    if (isBettingDisabled) {
+      return;
+    }
+
+    const sanitizedValue = String(value ?? "").replace(/\D/g, "");
+    const limitedValue = sanitizedValue.slice(0, MAX_BET_INPUT_LENGTH);
+
+    setBetValues((prev) => ({ ...prev, [betKey]: limitedValue }));
   };
 
   // Helper function to handle bet value changes with validation (must be multiple of 10)
@@ -1871,9 +1883,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     <input
                       type="number"
                       value={betValues.bet1}
-                      onChange={(e) =>
-                        !isBettingDisabled && setBetValues({ ...betValues, bet1: e.target.value })
-                      }
+                      onChange={(e) => handleBetInputChange("bet1", e.target.value)}
                       onBlur={(e) => handleBetValueChange("bet1", e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -1922,9 +1932,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     <input
                       type="number"
                       value={betValues.bet2}
-                      onChange={(e) =>
-                        !isBettingDisabled && setBetValues({ ...betValues, bet2: e.target.value })
-                      }
+                      onChange={(e) => handleBetInputChange("bet2", e.target.value)}
                       onBlur={(e) => handleBetValueChange("bet2", e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -1973,9 +1981,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     <input
                       type="number"
                       value={betValues.bet3}
-                      onChange={(e) =>
-                        !isBettingDisabled && setBetValues({ ...betValues, bet3: e.target.value })
-                      }
+                      onChange={(e) => handleBetInputChange("bet3", e.target.value)}
                       onBlur={(e) => handleBetValueChange("bet3", e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -2024,9 +2030,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     <input
                       type="number"
                       value={betValues.bet4}
-                      onChange={(e) =>
-                        !isBettingDisabled && setBetValues({ ...betValues, bet4: e.target.value })
-                      }
+                      onChange={(e) => handleBetInputChange("bet4", e.target.value)}
                       onBlur={(e) => handleBetValueChange("bet4", e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -2062,9 +2066,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet5}
-                    onChange={(e) =>
-                      !isBettingDisabled && setBetValues({ ...betValues, bet5: e.target.value })
-                    }
+                    onChange={(e) => handleBetInputChange("bet5", e.target.value)}
                     onBlur={(e) => handleBetValueChange("bet5", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2099,9 +2101,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet6}
-                    onChange={(e) =>
-                      !isBettingDisabled && setBetValues({ ...betValues, bet6: e.target.value })
-                    }
+                    onChange={(e) => handleBetInputChange("bet6", e.target.value)}
                     onBlur={(e) => handleBetValueChange("bet6", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2136,9 +2136,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet7}
-                    onChange={(e) =>
-                      !isBettingDisabled && setBetValues({ ...betValues, bet7: e.target.value })
-                    }
+                    onChange={(e) => handleBetInputChange("bet7", e.target.value)}
                     onBlur={(e) => handleBetValueChange("bet7", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2173,9 +2171,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet8}
-                    onChange={(e) =>
-                      !isBettingDisabled && setBetValues({ ...betValues, bet8: e.target.value })
-                    }
+                    onChange={(e) => handleBetInputChange("bet8", e.target.value)}
                     onBlur={(e) => handleBetValueChange("bet8", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2210,9 +2206,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet9}
-                    onChange={(e) =>
-                      !isBettingDisabled && setBetValues({ ...betValues, bet9: e.target.value })
-                    }
+                    onChange={(e) => handleBetInputChange("bet9", e.target.value)}
                     onBlur={(e) => handleBetValueChange("bet9", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2247,9 +2241,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet10}
-                    onChange={(e) =>
-                      !isBettingDisabled && setBetValues({ ...betValues, bet10: e.target.value })
-                    }
+                    onChange={(e) => handleBetInputChange("bet10", e.target.value)}
                     onBlur={(e) => handleBetValueChange("bet10", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2284,9 +2276,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet11}
-                    onChange={(e) =>
-                      !isBettingDisabled && setBetValues({ ...betValues, bet11: e.target.value })
-                    }
+                    onChange={(e) => handleBetInputChange("bet11", e.target.value)}
                     onBlur={(e) => handleBetValueChange("bet11", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2321,9 +2311,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet12}
-                    onChange={(e) =>
-                      !isBettingDisabled && setBetValues({ ...betValues, bet12: e.target.value })
-                    }
+                    onChange={(e) => handleBetInputChange("bet12", e.target.value)}
                     onBlur={(e) => handleBetValueChange("bet12", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
