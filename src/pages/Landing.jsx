@@ -155,6 +155,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const claimInputRef = useRef(null); // Ref for claim barcode input field
   const barcodeBufferRef = useRef(""); // Buffer to accumulate barcode characters
   const lastBarcodeKeyTimeRef = useRef(0); // Track timing between keystrokes for barcode detection
+  const claimCheckRef = useRef(null); // Always point to latest handleClaimCheck for dev simulations
+  const claimCheckInProgressRef = useRef(false); // Prevent double submit (barcode scanner firing twice)
+  const lastClaimedBarcodeRef = useRef(""); // Cooldown: last submitted barcode
+  const lastClaimTimeRef = useRef(0); // Cooldown: time of last submit (ms)
+  const CLAIM_COOLDOWN_MS = 2000; // Ignore same barcode for 2s after submit
 
   const isEditableElement = (element) => {
     if (!element) return false;
@@ -918,16 +923,32 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
   // Handle claim barcode check
   const handleClaimCheck = async () => {
-    playAllBtnSound();
-    // Validate input
-    if (!claimBarcode || claimBarcode.trim() === "") {
+    // Prevent double submit (scanner firing twice in a fraction of a second)
+    if (claimCheckInProgressRef.current) return;
+
+    const trimmedBarcode = (claimBarcode || "").trim();
+    if (!trimmedBarcode) {
+      playAllBtnSound();
       toast.error("Please enter a barcode number.");
       return;
     }
 
+    // Cooldown: block same barcode within CLAIM_COOLDOWN_MS to avoid duplicate transactions
+    const now = Date.now();
+    if (
+      lastClaimedBarcodeRef.current === trimmedBarcode &&
+      now - lastClaimTimeRef.current < CLAIM_COOLDOWN_MS
+    ) {
+      return; // Silent skip; user already submitted this barcode
+    }
+
+    claimCheckInProgressRef.current = true;
+    playAllBtnSound();
+
     // Get user from localStorage
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
+      claimCheckInProgressRef.current = false;
       toast.error("User not logged in. Please login again.");
       return;
     }
@@ -936,11 +957,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     try {
       user = JSON.parse(storedUser);
       if (!user._id) {
+        claimCheckInProgressRef.current = false;
         toast.error("User data is invalid. Please login again.");
         return;
       }
     } catch (error) {
       console.error("Error parsing user data:", error);
+      claimCheckInProgressRef.current = false;
       toast.error("User data is invalid. Please login again.");
       return;
     }
@@ -950,14 +973,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       // Ensure balance is a valid number
       const userBalance = Number(user.balance) || Number(balance) || 0;
       if (isNaN(userBalance)) {
+        claimCheckInProgressRef.current = false;
         toast.error("Invalid user balance. Please refresh and try again.");
         setIsCheckingClaim(false);
         return;
       }
 
+      // Record barcode and time for cooldown (prevents duplicate API calls for same scan)
+      lastClaimedBarcodeRef.current = trimmedBarcode;
+      lastClaimTimeRef.current = Date.now();
+
       // Call API to check bet profit
       const response = await api.post("/users/getBetProfit", {
-        betUniqueNumber: claimBarcode.trim(),
+        betUniqueNumber: trimmedBarcode,
         user: {
           _id: user._id,
           createdBy: user.createdBy || null,
@@ -1039,6 +1067,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       // Clear input after error (keep input box open for next scan)
       setClaimBarcode("");
     } finally {
+      claimCheckInProgressRef.current = false;
       setIsCheckingClaim(false);
       // Refocus the input after checking completes for next barcode scan
       if (showClaimInput && claimInputRef.current && shouldRefocusClaimInput()) {
@@ -1050,6 +1079,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       }
     }
   };
+
+  // Keep a ref to the latest handleClaimCheck implementation so dev tools
+  // simulations (like __simulateDoubleClaim) always call it with fresh state.
+  useEffect(() => {
+    claimCheckRef.current = handleClaimCheck;
+  }, [handleClaimCheck]);
 
   useEffect(() => {
     // Get username from localStorage
@@ -1540,15 +1575,22 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   // Auto-submit claim barcode when scanning (without pressing Enter)
   // Unique string length is fixed at 10 characters
   const BARCODE_LENGTH = 10;
-  
+
   useEffect(() => {
-    // Only auto-submit if input is visible, has reached the fixed length, and not currently checking
     const trimmedBarcode = claimBarcode.trim();
-    if (showClaimInput && trimmedBarcode.length === BARCODE_LENGTH && !isCheckingClaim) {
-      // Automatically submit when barcode reaches the fixed length
-      // This works perfectly with barcode scanners which send all characters at once
-      handleClaimCheck();
+    if (trimmedBarcode.length !== BARCODE_LENGTH || !showClaimInput || isCheckingClaim) return;
+    // Prevent double submit: do not trigger if a claim is already in progress
+    if (claimCheckInProgressRef.current) return;
+    // Cooldown: do not re-submit same barcode within CLAIM_COOLDOWN_MS
+    const now = Date.now();
+    if (
+      lastClaimedBarcodeRef.current === trimmedBarcode &&
+      now - lastClaimTimeRef.current < CLAIM_COOLDOWN_MS
+    ) {
+      return;
     }
+    // Automatically submit when barcode reaches the fixed length (barcode scanners send all chars at once)
+    handleClaimCheck();
   }, [claimBarcode, showClaimInput, isCheckingClaim]);
 
   // Auto-focus claim input when it becomes visible
@@ -1651,6 +1693,40 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     };
     return iconMap[resultNumber] || drawIcon1;
   };
+
+  // Dev-only: expose multi-scan simulator for console (reproduce barcode scanner duplicate bug).
+  // Triggers claim check 4 times in quick succession. Run: __simulateDoubleClaim()  or  __simulateDoubleClaim('1234567890')
+  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+    window.__simulateDoubleClaim = (barcode) => {
+      const value =
+        barcode && String(barcode).trim().length === 10
+          ? String(barcode).trim()
+          : "2528528919";
+
+      // First ensure the claim barcode state is set.
+      setClaimBarcode(value);
+
+      // Then (after React has a chance to re-render) call the latest
+      // handleClaimCheck 4 times via ref to simulate rapid repeated scans.
+      setTimeout(() => {
+        if (claimCheckRef.current) {
+          const fmt = (d) => d.toLocaleTimeString("en-GB", { hour12: false }) + "." + String(d.getMilliseconds()).padStart(3, "0");
+          const t1 = new Date();
+          console.log("[Simulate double scan] 1st entry at:", fmt(t1));
+          claimCheckRef.current();
+          const t2 = new Date();
+          console.log("[Simulate double scan] 2nd entry at:", fmt(t2));
+          claimCheckRef.current();
+          const t3 = new Date();
+          console.log("[Simulate double scan] 3rd entry at:", fmt(t3));
+          claimCheckRef.current();
+          const t4 = new Date();
+          console.log("[Simulate double scan] 4th entry at:", fmt(t4));
+          claimCheckRef.current();
+        }
+      }, 0);
+    };
+  }
 
   return (
     <div
