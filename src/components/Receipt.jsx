@@ -96,7 +96,8 @@ const Receipt = ({ receiptData, onClose }) => {
 
   // Load barcode font from public folder and store as data URL for printing
   useEffect(() => {
-    const fontPath = "/Code39AzaleaRegular1.ttf"; // Font is in public folder
+    // Use relative path so font loads in packaged Electron (file://) and in dev (http)
+    const fontPath = "./Code39AzaleaRegular1.ttf";
     const fontFace = new FontFace(
       "Code39Azalea",
       `url(${fontPath})`
@@ -153,7 +154,7 @@ const Receipt = ({ receiptData, onClose }) => {
 
     const barcodeFontSrc = barcodeFontDataUrl
       ? `url("${barcodeFontDataUrl}")`
-      : `url("/Code39AzaleaRegular1.ttf")`;
+      : `url("./Code39AzaleaRegular1.ttf")`;
 
     return `<!DOCTYPE html>
 <html>
@@ -606,7 +607,7 @@ const Receipt = ({ receiptData, onClose }) => {
       <style>{`
         @font-face {
           font-family: "Code39Azalea";
-          src: url("/Code39AzaleaRegular1.ttf") format("truetype");
+          src: url("./Code39AzaleaRegular1.ttf") format("truetype");
         }
         @media print {
           * {
