@@ -1822,6 +1822,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               ref={claimInputRef}
               type="text"
               value={claimBarcode}
+              maxLength={BARCODE_LENGTH}
               onChange={(e) => {
                 setClaimBarcode(e.target.value);
                 // Update buffer for barcode scanner detection
