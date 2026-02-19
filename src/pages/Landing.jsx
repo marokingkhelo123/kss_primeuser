@@ -143,6 +143,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const countdownIntervalRef = useRef(null);
   const lastGameIdRef = useRef(null); // Track last game ID to detect new games
   const lastFetchTimeRef = useRef(null); // Track last fetch time to throttle API calls
+  const hasInitializedSlotFromLastGameRef = useRef(false); // Only show last game result once on login
   const slotMachineTimeoutsRef = useRef([]); // Track timeouts to clear them
   const winnerPollingIntervalRef = useRef(null); // Track winner polling interval (deprecated, kept for cleanup)
   const lastWinnerGameIdRef = useRef(null); // Track game ID where winner was found
@@ -1404,7 +1405,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           animateSlotMachineToResult(currentGame.winning_number, currentGame.winning_x, false, currentGameId);
         }
       } else {
-        // No winner yet, initialize to stopped state (will spin when last 20 seconds)
+        // No winner yet: show 1 1x as fallback; effect below will replace with last game result when latestGames loads
         setSlotMachineState({
           pictureReel: { currentIndex: 0, isSpinning: false, targetIndex: null },
           numberReel: { currentIndex: 0, isSpinning: false, targetIndex: null },
@@ -1426,6 +1427,27 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       }
     }
   }, [currentGame, remainingSeconds]);
+
+  // On login: when latest games load and current game has no winner yet, show last game's winning number in slot machine
+  useEffect(() => {
+    if (
+      latestGames.length > 0 &&
+      currentGame &&
+      !currentGame.winning_number &&
+      !hasInitializedSlotFromLastGameRef.current
+    ) {
+      hasInitializedSlotFromLastGameRef.current = true;
+      const lastGame = latestGames[0];
+      const pictureIndex = Math.max(0, (lastGame.result || 1) - 1);
+      const numberIndex = pictureIndex;
+      const multiplierIndex = Math.min(Math.max((lastGame.multiplier || 1) - 1, 0), 8);
+      setSlotMachineState({
+        pictureReel: { currentIndex: pictureIndex, isSpinning: false, targetIndex: pictureIndex },
+        numberReel: { currentIndex: numberIndex, isSpinning: false, targetIndex: numberIndex },
+        multiplierReel: { currentIndex: multiplierIndex, isSpinning: false, targetIndex: multiplierIndex },
+      });
+    }
+  }, [latestGames, currentGame]);
 
   // Update running game time when currentGame changes
   useEffect(() => {
