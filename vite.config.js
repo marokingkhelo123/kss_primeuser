@@ -21,7 +21,7 @@ export default defineConfig({
     port: process.env.PORT ? parseInt(process.env.PORT) : 4173,
     host: '0.0.0.0',
     allowedHosts: [
-      'kssdesktop-primeuser-production.up.railway.app',
+      'kss-primeuser.up.railway.app',
       'winzoo-10kadum-primeuser.up.railway.app'
     ],
   },
