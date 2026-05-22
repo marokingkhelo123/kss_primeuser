@@ -119,7 +119,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     bet12: "",
   });
   const [selectedBettingNumber, setSelectedBettingNumber] = useState([]); // Array to support multiple number selections (1-12)
-  const [shouldClearNumbersOnNextSelect, setShouldClearNumbersOnNextSelect] = useState(false); // Clear previous selection after placing a bet
+  const [shouldClearNumbersOnNextSelect, setShouldClearNumbersOnNextSelect] =
+    useState(false); // Clear previous selection after placing a bet
   const [selectedButton, setSelectedButton] = useState([]); // Array to support multiple button selections: 'red', 'black', 'odd', 'even', 'arrow1-7'
   const [lastBetValues, setLastBetValues] = useState(null); // Store last bet values for REPEAT functionality
   const [isBettingDisabled, setIsBettingDisabled] = useState(false); // Track if betting is disabled (last 20 seconds)
@@ -136,7 +137,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const [claimBarcode, setClaimBarcode] = useState(""); // Store the input value
   const [isCheckingClaim, setIsCheckingClaim] = useState(false); // Loading state
   const [showAttentionPopup, setShowAttentionPopup] = useState(false); // AttentionPopup visibility
-  const [showCongratulationsPopup, setShowCongratulationsPopup] = useState(false); // CongratulationsPopup visibility
+  const [showCongratulationsPopup, setShowCongratulationsPopup] =
+    useState(false); // CongratulationsPopup visibility
   const [showOopsPopup, setShowOopsPopup] = useState(false); // OopsPopup visibility
   const [claimMessage, setClaimMessage] = useState(""); // Popup message
   const [claimCoins, setClaimCoins] = useState(0); // Winning amount
@@ -335,37 +337,75 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const displayProgressiveWinner = (seconds) => {
     if (!winnerDataRef.current) return;
 
-    const { pictureIndex, numberIndex, multiplierIndex } = winnerDataRef.current;
+    const { pictureIndex, numberIndex, multiplierIndex } =
+      winnerDataRef.current;
 
     if (seconds === 3) {
       // Show first value (picture reel) at 3rd second - stop picture reel, keep others spinning
       setSlotMachineState((prev) => ({
-        pictureReel: { currentIndex: pictureIndex, isSpinning: false, targetIndex: pictureIndex },
+        pictureReel: {
+          currentIndex: pictureIndex,
+          isSpinning: false,
+          targetIndex: pictureIndex,
+        },
         numberReel: { ...prev.numberReel, isSpinning: true, targetIndex: null },
-        multiplierReel: { ...prev.multiplierReel, isSpinning: true, targetIndex: null },
+        multiplierReel: {
+          ...prev.multiplierReel,
+          isSpinning: true,
+          targetIndex: null,
+        },
       }));
     } else if (seconds === 2) {
       // Show second value (number reel) at 2nd second - stop number reel, keep multiplier spinning
       setSlotMachineState((prev) => ({
-        pictureReel: { ...prev.pictureReel, isSpinning: false, targetIndex: pictureIndex },
-        numberReel: { currentIndex: numberIndex, isSpinning: false, targetIndex: numberIndex },
-        multiplierReel: { ...prev.multiplierReel, isSpinning: true, targetIndex: null },
+        pictureReel: {
+          ...prev.pictureReel,
+          isSpinning: false,
+          targetIndex: pictureIndex,
+        },
+        numberReel: {
+          currentIndex: numberIndex,
+          isSpinning: false,
+          targetIndex: numberIndex,
+        },
+        multiplierReel: {
+          ...prev.multiplierReel,
+          isSpinning: true,
+          targetIndex: null,
+        },
       }));
       // Play win result sound starting at last 2 seconds
       playWinResultSound();
     } else if (seconds === 1) {
       // Show last value (multiplier reel) at 1st second - stop all reels
       setSlotMachineState({
-        pictureReel: { currentIndex: pictureIndex, isSpinning: false, targetIndex: pictureIndex },
-        numberReel: { currentIndex: numberIndex, isSpinning: false, targetIndex: numberIndex },
-        multiplierReel: { currentIndex: multiplierIndex, isSpinning: false, targetIndex: multiplierIndex },
+        pictureReel: {
+          currentIndex: pictureIndex,
+          isSpinning: false,
+          targetIndex: pictureIndex,
+        },
+        numberReel: {
+          currentIndex: numberIndex,
+          isSpinning: false,
+          targetIndex: numberIndex,
+        },
+        multiplierReel: {
+          currentIndex: multiplierIndex,
+          isSpinning: false,
+          targetIndex: multiplierIndex,
+        },
       });
       // Stop spinning sound when all reels have stopped
     }
   };
 
   // Helper function to animate slot machine to winning result (legacy function, kept for compatibility)
-  const animateSlotMachineToResult = (winningNumber, winningMultiplier, isFromPolling = false, gameId = null) => {
+  const animateSlotMachineToResult = (
+    winningNumber,
+    winningMultiplier,
+    isFromPolling = false,
+    gameId = null,
+  ) => {
     const winningNumberNumeric = convertWinningNumberToNumeric(winningNumber);
     const pictureIndex = winningNumberNumeric ? winningNumberNumeric - 1 : 0;
     const numberIndex = winningNumberNumeric ? winningNumberNumeric - 1 : 0;
@@ -383,9 +423,21 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
 
     setSlotMachineState({
-      pictureReel: { currentIndex: pictureIndex, isSpinning: true, targetIndex: pictureIndex },
-      numberReel: { currentIndex: numberIndex, isSpinning: true, targetIndex: numberIndex },
-      multiplierReel: { currentIndex: multiplierIndex, isSpinning: true, targetIndex: multiplierIndex },
+      pictureReel: {
+        currentIndex: pictureIndex,
+        isSpinning: true,
+        targetIndex: pictureIndex,
+      },
+      numberReel: {
+        currentIndex: numberIndex,
+        isSpinning: true,
+        targetIndex: numberIndex,
+      },
+      multiplierReel: {
+        currentIndex: multiplierIndex,
+        isSpinning: true,
+        targetIndex: multiplierIndex,
+      },
     });
 
     // Stop reels sequentially (shorter delays if from polling since it's already spinning)
@@ -449,11 +501,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   // Helper function to check if a betting number should be highlighted
   const isBettingNumberHighlighted = (number) => {
     // Check if number is in the selected array
-    if (selectedBettingNumber && selectedBettingNumber.includes(number)) return true;
+    if (selectedBettingNumber && selectedBettingNumber.includes(number))
+      return true;
     if (!selectedButton || selectedButton.length === 0) return false;
     const betKey = getBettingKey(number);
     // Check if any selected button includes this bet key
-    return betKey && selectedButton.some(button => buttonBetMapping[button]?.includes(betKey));
+    return (
+      betKey &&
+      selectedButton.some((button) =>
+        buttonBetMapping[button]?.includes(betKey),
+      )
+    );
   };
 
   // Helper function to handle button selection (supports multiple selections)
@@ -464,10 +522,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       return;
     }
     // Toggle button selection: if already selected, remove it; otherwise add it
-    setSelectedButton(prev => {
+    setSelectedButton((prev) => {
       const prevArray = prev || [];
       if (prevArray.includes(buttonType)) {
-        return prevArray.filter(btn => btn !== buttonType);
+        return prevArray.filter((btn) => btn !== buttonType);
       } else {
         return [...prevArray, buttonType];
       }
@@ -483,13 +541,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       return;
     }
     // Toggle number selection: if already selected, remove it; otherwise add it
-    setSelectedBettingNumber(prev => {
+    setSelectedBettingNumber((prev) => {
       if (shouldClearNumbersOnNextSelect) {
         return [number];
       }
       const prevArray = prev || [];
       if (prevArray.includes(number)) {
-        return prevArray.filter(num => num !== number);
+        return prevArray.filter((num) => num !== number);
       } else {
         return [...prevArray, number];
       }
@@ -504,7 +562,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const handleCoinClick = (coinValue) => {
     // Play bet amount sound
     playBetAmtSound();
-    
+
     // Prevent betting if disabled (last 20 seconds)
     if (isBettingDisabled) {
       toast.error("Betting is disabled in the last 20 seconds of the round.");
@@ -515,9 +573,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     if (selectedButton && selectedButton.length > 0) {
       // Collect all unique bet keys from all selected buttons
       const allBetKeys = new Set();
-      selectedButton.forEach(button => {
+      selectedButton.forEach((button) => {
         if (buttonBetMapping[button]) {
-          buttonBetMapping[button].forEach(betKey => allBetKeys.add(betKey));
+          buttonBetMapping[button].forEach((betKey) => allBetKeys.add(betKey));
         }
       });
       // Add coin to all collected bet keys
@@ -788,13 +846,15 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
     // Check if betting is disabled (last 20 seconds)
     if (isBettingDisabled) {
-      toast.error("Betting is disabled in the last 20 seconds of the round. Please wait for the next round.");
+      toast.error(
+        "Betting is disabled in the last 20 seconds of the round. Please wait for the next round.",
+      );
       return;
     }
 
     // Check if there are any bets placed
     const hasBets = Object.values(betValues).some(
-      (value) => value && value !== "" && Number(value) > 0
+      (value) => value && value !== "" && Number(value) > 0,
     );
 
     if (!hasBets) {
@@ -831,12 +891,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       // Calculate total bet amount
       const totalBetAmount = Object.values(betAmounts).reduce(
         (sum, amount) => sum + amount,
-        0
+        0,
       );
 
       // Check if user has enough balance
       if (totalBetAmount > balance) {
-        toast.error(`Insufficient balance. You have ${balance} points but need ${totalBetAmount} points.`);
+        toast.error(
+          `Insufficient balance. You have ${balance} points but need ${totalBetAmount} points.`,
+        );
         setIsBettingInProgress(false);
         return;
       }
@@ -859,14 +921,14 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         // Store receipt data from backend response
         const receiptDataFromBackend = response.data.data;
         if (receiptDataFromBackend) {
-        const alignedDate = formatGameDate(currentGame?.startTime);
-        const alignedTime = formatGameTime(currentGame?.startTime);
-        setReceiptData({
-          ...receiptDataFromBackend,
-          date: alignedDate || receiptDataFromBackend.date,
-          drawTime: alignedTime || receiptDataFromBackend.drawTime,
-          printTime: alignedTime || receiptDataFromBackend.printTime,
-        });
+          const alignedDate = formatGameDate(currentGame?.startTime);
+          const alignedTime = formatGameTime(currentGame?.startTime);
+          setReceiptData({
+            ...receiptDataFromBackend,
+            date: alignedDate || receiptDataFromBackend.date,
+            drawTime: alignedTime || receiptDataFromBackend.drawTime,
+            printTime: alignedTime || receiptDataFromBackend.printTime,
+          });
           setShowReceipt(true);
         }
 
@@ -1032,7 +1094,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           }
         } else {
           // No winner - show OopsPopup
-          setClaimMessage("There have no winning ticket. Better luck next time.");
+          setClaimMessage(
+            "There have no winning ticket. Better luck next time.",
+          );
           setShowOopsPopup(true);
         }
       } else {
@@ -1049,11 +1113,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         "Failed to check barcode. Please try again.";
 
       // If game is still running, show specific toast
-      if (errorMessage.includes("Game is still running") || errorMessage.includes("still running")) {
-        toast.error("This ticket is for the current running game. Please wait for the game to finish before scanning.");
+      if (
+        errorMessage.includes("Game is still running") ||
+        errorMessage.includes("still running")
+      ) {
+        toast.error(
+          "This ticket is for the current running game. Please wait for the game to finish before scanning.",
+        );
       }
       // If bet not found, show OopsPopup
-      else if (errorMessage.includes("BET NOT FOUND") || errorMessage.includes("NOT FOUND")) {
+      else if (
+        errorMessage.includes("BET NOT FOUND") ||
+        errorMessage.includes("NOT FOUND")
+      ) {
         setClaimMessage("There have no winning ticket. Better luck next time.");
         setShowOopsPopup(true);
       }
@@ -1064,14 +1136,18 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       } else {
         toast.error(errorMessage);
       }
-      
+
       // Clear input after error (keep input box open for next scan)
       setClaimBarcode("");
     } finally {
       claimCheckInProgressRef.current = false;
       setIsCheckingClaim(false);
       // Refocus the input after checking completes for next barcode scan
-      if (showClaimInput && claimInputRef.current && shouldRefocusClaimInput()) {
+      if (
+        showClaimInput &&
+        claimInputRef.current &&
+        shouldRefocusClaimInput()
+      ) {
         setTimeout(() => {
           if (claimInputRef.current && shouldRefocusClaimInput()) {
             claimInputRef.current.focus();
@@ -1124,13 +1200,23 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       if (response.data && response.data.data) {
         const gameData = response.data.data;
         setCurrentGame(gameData);
-        
+
         // Extract win amount from totalUsersPlayed array
-        if (gameData.totalUsersPlayed && Array.isArray(gameData.totalUsersPlayed) && userId) {
+        if (
+          gameData.totalUsersPlayed &&
+          Array.isArray(gameData.totalUsersPlayed) &&
+          userId
+        ) {
           const userEntry = gameData.totalUsersPlayed.find(
-            (entry) => entry._id === userId || entry._id?.toString() === userId?.toString()
+            (entry) =>
+              entry._id === userId ||
+              entry._id?.toString() === userId?.toString(),
           );
-          if (userEntry && userEntry.total_winning !== null && userEntry.total_winning !== undefined) {
+          if (
+            userEntry &&
+            userEntry.total_winning !== null &&
+            userEntry.total_winning !== undefined
+          ) {
             setWinAmount(userEntry.total_winning);
           } else {
             // If user not found or total_winning is null, set to 0
@@ -1162,9 +1248,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       if (response.data && response.data.data) {
         const gameData = response.data.data;
         const gameId = gameData.gameId || gameData._id;
-        
+
         // Only process if it's the same game
-        if (gameId === currentGameId && gameData.winning_number && gameData.winning_x) {
+        if (
+          gameId === currentGameId &&
+          gameData.winning_number &&
+          gameData.winning_x
+        ) {
           // Winner found! Store the data and stop making more calls
           storeWinnerData(gameData.winning_number, gameData.winning_x, gameId);
           setCurrentGame(gameData);
@@ -1189,7 +1279,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
 
     const winnerFound = await checkWinnerSequentially(currentGameId);
-    
+
     // If winner not found, wait then make another call (useEffect cleanup will stop this if outside valid range)
     if (!winnerFound && !winnerDataRef.current) {
       apiCallTimeoutRef.current = setTimeout(() => {
@@ -1222,7 +1312,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
           // Convert string winning_number to numeric value
           const numericResult = convertWinningNumberToNumeric(
-            game.winning_number
+            game.winning_number,
           );
 
           return {
@@ -1270,7 +1360,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       const remainingMinutes = Math.floor(timeDifference / (1000 * 60));
       const totalRemainingSeconds = Math.floor(timeDifference / 1000);
       const remainingSecondsOnly = Math.floor(
-        (timeDifference % (1000 * 60)) / 1000
+        (timeDifference % (1000 * 60)) / 1000,
       );
 
       // Update remaining seconds state
@@ -1281,7 +1371,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         setIsBettingDisabled(true);
         // Fetch live game data in the last 20 seconds, but throttle to every 2 seconds
         const now = Date.now();
-        if (!lastFetchTimeRef.current || (now - lastFetchTimeRef.current) >= 2000) {
+        if (
+          !lastFetchTimeRef.current ||
+          now - lastFetchTimeRef.current >= 2000
+        ) {
           getLiveGame();
           lastFetchTimeRef.current = now;
         }
@@ -1295,7 +1388,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       const formattedMinutes =
         remainingMinutes < 10 ? `0${remainingMinutes}` : `${remainingMinutes}`;
       const formattedSeconds =
-        remainingSecondsOnly < 10 ? `0${remainingSecondsOnly}` : `${remainingSecondsOnly}`;
+        remainingSecondsOnly < 10
+          ? `0${remainingSecondsOnly}`
+          : `${remainingSecondsOnly}`;
 
       setCountdown(`${formattedMinutes}:${formattedSeconds}`);
     }
@@ -1326,7 +1421,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
     const currentGameId = currentGame.gameId || currentGame._id;
     const isNewGame = currentGameId && lastGameIdRef.current !== currentGameId;
-    const hasWinningResult = currentGame.winning_number && currentGame.winning_x;
+    const hasWinningResult =
+      currentGame.winning_number && currentGame.winning_x;
 
     // New game detected
     if (isNewGame) {
@@ -1361,7 +1457,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
       // Reset total bet placed in round for new game
       setTotalBetPlacedInRound(0);
-      
+
       // Reset win amount for new game
       setWinAmount(0);
 
@@ -1380,11 +1476,20 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
 
     // Extract win amount from totalUsersPlayed array whenever game data updates
-    if (currentGame.totalUsersPlayed && Array.isArray(currentGame.totalUsersPlayed) && userId) {
+    if (
+      currentGame.totalUsersPlayed &&
+      Array.isArray(currentGame.totalUsersPlayed) &&
+      userId
+    ) {
       const userEntry = currentGame.totalUsersPlayed.find(
-        (entry) => entry._id === userId || entry._id?.toString() === userId?.toString()
+        (entry) =>
+          entry._id === userId || entry._id?.toString() === userId?.toString(),
       );
-      if (userEntry && userEntry.total_winning !== null && userEntry.total_winning !== undefined) {
+      if (
+        userEntry &&
+        userEntry.total_winning !== null &&
+        userEntry.total_winning !== undefined
+      ) {
         setWinAmount(userEntry.total_winning);
       } else if (!isNewGame && !userEntry) {
         // If user entry not found and it's not a new game, keep existing value
@@ -1397,19 +1502,36 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       lastGameIdRef.current = currentGameId;
       if (hasWinningResult) {
         // If there's already a winner, store it for progressive display
-        storeWinnerData(currentGame.winning_number, currentGame.winning_x, currentGameId);
+        storeWinnerData(
+          currentGame.winning_number,
+          currentGame.winning_x,
+          currentGameId,
+        );
         // Only animate immediately if we're outside the last 20 seconds
         // If we're in the last 20 seconds, let the progressive display handle it
         const isLast20Seconds = remainingSeconds > 0 && remainingSeconds <= 20;
         if (!isLast20Seconds) {
-          animateSlotMachineToResult(currentGame.winning_number, currentGame.winning_x, false, currentGameId);
+          animateSlotMachineToResult(
+            currentGame.winning_number,
+            currentGame.winning_x,
+            false,
+            currentGameId,
+          );
         }
       } else {
         // No winner yet: show 1 1x as fallback; effect below will replace with last game result when latestGames loads
         setSlotMachineState({
-          pictureReel: { currentIndex: 0, isSpinning: false, targetIndex: null },
+          pictureReel: {
+            currentIndex: 0,
+            isSpinning: false,
+            targetIndex: null,
+          },
           numberReel: { currentIndex: 0, isSpinning: false, targetIndex: null },
-          multiplierReel: { currentIndex: 0, isSpinning: false, targetIndex: null },
+          multiplierReel: {
+            currentIndex: 0,
+            isSpinning: false,
+            targetIndex: null,
+          },
         });
       }
     }
@@ -1417,13 +1539,22 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     // Handle winning result - only animate if we haven't already shown this winner
     if (hasWinningResult && lastWinnerGameIdRef.current !== currentGameId) {
       // Store winner data for progressive display (needed for both automated and manual winners)
-      storeWinnerData(currentGame.winning_number, currentGame.winning_x, currentGameId);
-      
+      storeWinnerData(
+        currentGame.winning_number,
+        currentGame.winning_x,
+        currentGameId,
+      );
+
       // Only animate immediately if we're outside the last 20 seconds
       // If we're in the last 20 seconds, let the progressive display handle it
       const isLast20Seconds = remainingSeconds > 0 && remainingSeconds <= 20;
       if (!isLast20Seconds) {
-        animateSlotMachineToResult(currentGame.winning_number, currentGame.winning_x, false, currentGameId);
+        animateSlotMachineToResult(
+          currentGame.winning_number,
+          currentGame.winning_x,
+          false,
+          currentGameId,
+        );
       }
     }
   }, [currentGame, remainingSeconds]);
@@ -1440,11 +1571,26 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       const lastGame = latestGames[0];
       const pictureIndex = Math.max(0, (lastGame.result || 1) - 1);
       const numberIndex = pictureIndex;
-      const multiplierIndex = Math.min(Math.max((lastGame.multiplier || 1) - 1, 0), 8);
+      const multiplierIndex = Math.min(
+        Math.max((lastGame.multiplier || 1) - 1, 0),
+        8,
+      );
       setSlotMachineState({
-        pictureReel: { currentIndex: pictureIndex, isSpinning: false, targetIndex: pictureIndex },
-        numberReel: { currentIndex: numberIndex, isSpinning: false, targetIndex: numberIndex },
-        multiplierReel: { currentIndex: multiplierIndex, isSpinning: false, targetIndex: multiplierIndex },
+        pictureReel: {
+          currentIndex: pictureIndex,
+          isSpinning: false,
+          targetIndex: pictureIndex,
+        },
+        numberReel: {
+          currentIndex: numberIndex,
+          isSpinning: false,
+          targetIndex: numberIndex,
+        },
+        multiplierReel: {
+          currentIndex: multiplierIndex,
+          isSpinning: false,
+          targetIndex: multiplierIndex,
+        },
       });
     }
   }, [latestGames, currentGame]);
@@ -1491,9 +1637,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     if (!currentGame) return;
 
     const currentGameId = currentGame.gameId || currentGame._id;
-    const hasWinningResult = currentGame.winning_number && currentGame.winning_x;
+    const hasWinningResult =
+      currentGame.winning_number && currentGame.winning_x;
     const isLast20Seconds = remainingSeconds > 0 && remainingSeconds <= 20;
-    const hasWinnerForCurrentGame = lastWinnerGameIdRef.current === currentGameId && hasWinningResult;
+    const hasWinnerForCurrentGame =
+      lastWinnerGameIdRef.current === currentGameId && hasWinningResult;
 
     // If we're in the last 20 seconds
     if (isLast20Seconds) {
@@ -1503,7 +1651,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         setSlotMachineState((prev) => ({
           pictureReel: { currentIndex: 0, isSpinning: true, targetIndex: null },
           numberReel: { currentIndex: 0, isSpinning: true, targetIndex: null },
-          multiplierReel: { currentIndex: 0, isSpinning: true, targetIndex: null },
+          multiplierReel: {
+            currentIndex: 0,
+            isSpinning: true,
+            targetIndex: null,
+          },
         }));
         // Play slot machine spinning sound
         if (!hasPlayedSlotSoundRef.current) {
@@ -1553,7 +1705,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     if (!currentGame) return;
 
     const currentGameId = currentGame.gameId || currentGame._id;
-    const hasWinnerForCurrentGame = lastWinnerGameIdRef.current === currentGameId && winnerDataRef.current;
+    const hasWinnerForCurrentGame =
+      lastWinnerGameIdRef.current === currentGameId && winnerDataRef.current;
     const isLast20Seconds = remainingSeconds > 0 && remainingSeconds <= 20;
 
     // Stop API calls if we're outside last 20 seconds, have a winner, or past 3 seconds
@@ -1567,7 +1720,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     }
 
     // First API call at exactly 5th second - start the sequential calling process
-    if (remainingSeconds === 5 && !hasMadeFirstApiCallRef.current && !winnerDataRef.current) {
+    if (
+      remainingSeconds === 5 &&
+      !hasMadeFirstApiCallRef.current &&
+      !winnerDataRef.current
+    ) {
       hasMadeFirstApiCallRef.current = true;
       makeSequentialApiCalls(currentGameId);
     }
@@ -1586,10 +1743,15 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
     if (!currentGame || !winnerDataRef.current) return;
 
     const currentGameId = currentGame.gameId || currentGame._id;
-    const isWinnerForCurrentGame = winnerDataRef.current.gameId === currentGameId;
-    
+    const isWinnerForCurrentGame =
+      winnerDataRef.current.gameId === currentGameId;
+
     // Only display progressively if we have winner data for current game
-    if (isWinnerForCurrentGame && remainingSeconds > 0 && remainingSeconds <= 3) {
+    if (
+      isWinnerForCurrentGame &&
+      remainingSeconds > 0 &&
+      remainingSeconds <= 3
+    ) {
       displayProgressiveWinner(remainingSeconds);
     }
   }, [remainingSeconds, currentGame]);
@@ -1600,7 +1762,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
   useEffect(() => {
     const trimmedBarcode = claimBarcode.trim();
-    if (trimmedBarcode.length !== BARCODE_LENGTH || !showClaimInput || isCheckingClaim) return;
+    if (
+      trimmedBarcode.length !== BARCODE_LENGTH ||
+      !showClaimInput ||
+      isCheckingClaim
+    )
+      return;
     // Prevent double submit: do not trigger if a claim is already in progress
     if (claimCheckInProgressRef.current) return;
     // Cooldown: do not re-submit same barcode within CLAIM_COOLDOWN_MS
@@ -1624,7 +1791,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           claimInputRef.current.focus();
         }
       }, 100);
-      
+
       return () => clearTimeout(focusTimer);
     }
   }, [showClaimInput, isCheckingClaim]);
@@ -1650,14 +1817,20 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       // Check if this might be barcode scanner input
       // Barcode scanners send characters very quickly (usually < 50ms apart)
       // and don't use modifier keys
-      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      if (
+        e.key.length === 1 &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey &&
+        !e.shiftKey
+      ) {
         // Check if we're not in any other input/textarea field
         const activeElement = document.activeElement;
-        const isInInputField = activeElement && (
-          activeElement.tagName === "INPUT" || 
-          activeElement.tagName === "TEXTAREA" ||
-          activeElement.isContentEditable
-        );
+        const isInInputField =
+          activeElement &&
+          (activeElement.tagName === "INPUT" ||
+            activeElement.tagName === "TEXTAREA" ||
+            activeElement.isContentEditable);
 
         // If rapid input detected (likely barcode scanner) and not in any input field
         if (timeSinceLastKey < 50 && !isInInputField) {
@@ -1676,7 +1849,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
       // Handle Enter key - if barcode scanner sends Enter and input is focused, it will be handled by onKeyPress
       // If Enter is pressed elsewhere but we have a barcode buffer, focus input and submit
-      if (e.key === "Enter" && barcodeBufferRef.current.length > 0 && claimInputRef.current) {
+      if (
+        e.key === "Enter" &&
+        barcodeBufferRef.current.length > 0 &&
+        claimInputRef.current
+      ) {
         e.preventDefault();
         claimInputRef.current.focus();
         setClaimBarcode(barcodeBufferRef.current);
@@ -1688,7 +1865,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
     // Add global keyboard listener with capture phase to catch events early
     window.addEventListener("keydown", handleGlobalKeyDown, true);
-    
+
     // Cleanup
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown, true);
@@ -1732,7 +1909,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       // handleClaimCheck 4 times via ref to simulate rapid repeated scans.
       setTimeout(() => {
         if (claimCheckRef.current) {
-          const fmt = (d) => d.toLocaleTimeString("en-GB", { hour12: false }) + "." + String(d.getMilliseconds()).padStart(3, "0");
+          const fmt = (d) =>
+            d.toLocaleTimeString("en-GB", { hour12: false }) +
+            "." +
+            String(d.getMilliseconds()).padStart(3, "0");
           const t1 = new Date();
           console.log("[Simulate double scan] 1st entry at:", fmt(t1));
           claimCheckRef.current();
@@ -1764,7 +1944,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       <nav
         className="w-full h-16 flex items-center px-4 justify-between"
         style={{
-          background: "linear-gradient(to bottom, #0063cd, #4c017c)",
+          background: "linear-gradient(to bottom, #c20001, #a43406)",
         }}
       >
         {/* Logo - KSS brand logo on the left side */}
@@ -1861,7 +2041,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 if (!isCheckingClaim) {
                   // Small delay to allow other focus events to complete
                   setTimeout(() => {
-                    if (claimInputRef.current && showClaimInput && shouldRefocusClaimInput()) {
+                    if (
+                      claimInputRef.current &&
+                      showClaimInput &&
+                      shouldRefocusClaimInput()
+                    ) {
                       claimInputRef.current.focus();
                     }
                   }, 50);
@@ -1927,6 +2111,26 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
             multiplierImages={winImages}
             state={slotMachineState}
             speed={150}
+            positions={{
+              picture: {
+                width: "15%",
+                height: "18%",
+                right: "67%",
+                bottom: "14%",
+              },
+              number: {
+                width: "15%",
+                height: "18%",
+                right: "42.5%",
+                bottom: "14%",
+              },
+              multiplier: {
+                width: "15%",
+                height: "18%",
+                right: "19%",
+                bottom: "14%",
+              },
+            }}
           />
         </div>
         <div className="flex items-center justify-center text-xs text-white"></div>
@@ -1952,26 +2156,30 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 <span className="text-white text-[1vw] sm-font w-full text-center">
                   1,2,5,6,9,10
                 </span>
-                <button 
+                <button
                   className={`bg-red-600 text-white px-[8%] py-[1%] rounded-full border-2 border-white hover:bg-red-700 transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-105 text-center ${
-                    (selectedButton || []).includes('red') ? "ring-2 ring-yellow-400" : ""
+                    (selectedButton || []).includes("red")
+                      ? "ring-2 ring-yellow-400"
+                      : ""
                   } ${isBettingDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                  onClick={() => handleButtonSelection('red')}
+                  onClick={() => handleButtonSelection("red")}
                   disabled={isBettingDisabled}
                 >
                   RED
                 </button>
                 <div
                   className={`relative w-full transition-transform mt-[1vh] ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   } ${
                     isBettingNumberHighlighted(1)
                       ? "border-2 border-yellow-400 rounded-lg"
                       : ""
                   }`}
-                  onClick={() => !isBettingDisabled && handleBettingNumberSelection(1)}
+                  onClick={() =>
+                    !isBettingDisabled && handleBettingNumberSelection(1)
+                  }
                 >
                   <img
                     src={betNum1}
@@ -1982,8 +2190,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     <input
                       type="number"
                       value={betValues.bet1}
-                      onChange={(e) => handleBetInputChange("bet1", e.target.value)}
-                      onBlur={(e) => handleBetValueChange("bet1", e.target.value)}
+                      onChange={(e) =>
+                        handleBetInputChange("bet1", e.target.value)
+                      }
+                      onBlur={(e) =>
+                        handleBetValueChange("bet1", e.target.value)
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.target.blur();
@@ -2001,26 +2213,30 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 <span className="text-white text-[1vw] sm-font w-full text-center">
                   3,4,7,8,11,12
                 </span>
-                <button 
+                <button
                   className={`bg-gray-800 text-white px-[8%] py-[1%] rounded-full border-2 border-white hover:bg-black transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-105 text-center ${
-                    (selectedButton || []).includes('black') ? "ring-2 ring-yellow-400" : ""
+                    (selectedButton || []).includes("black")
+                      ? "ring-2 ring-yellow-400"
+                      : ""
                   } ${isBettingDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                  onClick={() => handleButtonSelection('black')}
+                  onClick={() => handleButtonSelection("black")}
                   disabled={isBettingDisabled}
                 >
                   BLACK
                 </button>
                 <div
                   className={`relative w-full transition-transform mt-[1vh] ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   } ${
                     isBettingNumberHighlighted(2)
                       ? "border-2 border-yellow-400 rounded-lg"
                       : ""
                   }`}
-                  onClick={() => !isBettingDisabled && handleBettingNumberSelection(2)}
+                  onClick={() =>
+                    !isBettingDisabled && handleBettingNumberSelection(2)
+                  }
                 >
                   <img
                     src={betNum2}
@@ -2031,8 +2247,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     <input
                       type="number"
                       value={betValues.bet2}
-                      onChange={(e) => handleBetInputChange("bet2", e.target.value)}
-                      onBlur={(e) => handleBetValueChange("bet2", e.target.value)}
+                      onChange={(e) =>
+                        handleBetInputChange("bet2", e.target.value)
+                      }
+                      onBlur={(e) =>
+                        handleBetValueChange("bet2", e.target.value)
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.target.blur();
@@ -2050,26 +2270,30 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 <span className="text-white text-[1vw] sm-font w-full text-center">
                   1,3,5,7,9,11
                 </span>
-                <button 
+                <button
                   className={`bg-[#0ac2f6] text-white px-[8%] py-[1%] rounded-full border-2 border-white hover:bg-[#0288ad] transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-105 text-center ${
-                    (selectedButton || []).includes('odd') ? "ring-2 ring-yellow-400" : ""
+                    (selectedButton || []).includes("odd")
+                      ? "ring-2 ring-yellow-400"
+                      : ""
                   } ${isBettingDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                  onClick={() => handleButtonSelection('odd')}
+                  onClick={() => handleButtonSelection("odd")}
                   disabled={isBettingDisabled}
                 >
                   ODD
                 </button>
                 <div
                   className={`relative w-full transition-transform mt-[1vh] ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   } ${
                     isBettingNumberHighlighted(3)
                       ? "border-2 border-yellow-400 rounded-lg"
                       : ""
                   }`}
-                  onClick={() => !isBettingDisabled && handleBettingNumberSelection(3)}
+                  onClick={() =>
+                    !isBettingDisabled && handleBettingNumberSelection(3)
+                  }
                 >
                   <img
                     src={betNum3}
@@ -2080,8 +2304,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     <input
                       type="number"
                       value={betValues.bet3}
-                      onChange={(e) => handleBetInputChange("bet3", e.target.value)}
-                      onBlur={(e) => handleBetValueChange("bet3", e.target.value)}
+                      onChange={(e) =>
+                        handleBetInputChange("bet3", e.target.value)
+                      }
+                      onBlur={(e) =>
+                        handleBetValueChange("bet3", e.target.value)
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.target.blur();
@@ -2099,26 +2327,30 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 <span className="text-white text-[1vw] sm-font w-full text-center">
                   2,4,6,8,10,12
                 </span>
-                <button 
+                <button
                   className={`bg-[#8b04d2] text-white px-[8%] py-[1%] rounded-full border-2 border-white hover:bg-[#6a039e] transition-colors text-[1vw] font-semibold mb-[2%] w-[70%] hover:scale-105 text-center ${
-                    (selectedButton || []).includes('even') ? "ring-2 ring-yellow-400" : ""
+                    (selectedButton || []).includes("even")
+                      ? "ring-2 ring-yellow-400"
+                      : ""
                   } ${isBettingDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                  onClick={() => handleButtonSelection('even')}
+                  onClick={() => handleButtonSelection("even")}
                   disabled={isBettingDisabled}
                 >
                   EVEN
                 </button>
                 <div
                   className={`relative w-full transition-transform mt-[1vh] ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   } ${
                     isBettingNumberHighlighted(4)
                       ? "border-2 border-yellow-400 rounded-lg"
                       : ""
                   }`}
-                  onClick={() => !isBettingDisabled && handleBettingNumberSelection(4)}
+                  onClick={() =>
+                    !isBettingDisabled && handleBettingNumberSelection(4)
+                  }
                 >
                   <img
                     src={betNum4}
@@ -2129,8 +2361,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                     <input
                       type="number"
                       value={betValues.bet4}
-                      onChange={(e) => handleBetInputChange("bet4", e.target.value)}
-                      onBlur={(e) => handleBetValueChange("bet4", e.target.value)}
+                      onChange={(e) =>
+                        handleBetInputChange("bet4", e.target.value)
+                      }
+                      onBlur={(e) =>
+                        handleBetValueChange("bet4", e.target.value)
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.target.blur();
@@ -2146,15 +2382,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-full transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(5)
                     ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
-                onClick={() => !isBettingDisabled && handleBettingNumberSelection(5)}
+                onClick={() =>
+                  !isBettingDisabled && handleBettingNumberSelection(5)
+                }
               >
                 <img
                   src={betNum5}
@@ -2165,7 +2403,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet5}
-                    onChange={(e) => handleBetInputChange("bet5", e.target.value)}
+                    onChange={(e) =>
+                      handleBetInputChange("bet5", e.target.value)
+                    }
                     onBlur={(e) => handleBetValueChange("bet5", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2181,15 +2421,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-full transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(6)
                     ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
-                onClick={() => !isBettingDisabled && handleBettingNumberSelection(6)}
+                onClick={() =>
+                  !isBettingDisabled && handleBettingNumberSelection(6)
+                }
               >
                 <img
                   src={betNum6}
@@ -2200,7 +2442,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet6}
-                    onChange={(e) => handleBetInputChange("bet6", e.target.value)}
+                    onChange={(e) =>
+                      handleBetInputChange("bet6", e.target.value)
+                    }
                     onBlur={(e) => handleBetValueChange("bet6", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2216,15 +2460,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-full transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(7)
                     ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
-                onClick={() => !isBettingDisabled && handleBettingNumberSelection(7)}
+                onClick={() =>
+                  !isBettingDisabled && handleBettingNumberSelection(7)
+                }
               >
                 <img
                   src={betNum7}
@@ -2235,7 +2481,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet7}
-                    onChange={(e) => handleBetInputChange("bet7", e.target.value)}
+                    onChange={(e) =>
+                      handleBetInputChange("bet7", e.target.value)
+                    }
                     onBlur={(e) => handleBetValueChange("bet7", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2251,15 +2499,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-full transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(8)
                     ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
-                onClick={() => !isBettingDisabled && handleBettingNumberSelection(8)}
+                onClick={() =>
+                  !isBettingDisabled && handleBettingNumberSelection(8)
+                }
               >
                 <img
                   src={betNum8}
@@ -2270,7 +2520,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet8}
-                    onChange={(e) => handleBetInputChange("bet8", e.target.value)}
+                    onChange={(e) =>
+                      handleBetInputChange("bet8", e.target.value)
+                    }
                     onBlur={(e) => handleBetValueChange("bet8", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2286,15 +2538,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-full transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(9)
                     ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
-                onClick={() => !isBettingDisabled && handleBettingNumberSelection(9)}
+                onClick={() =>
+                  !isBettingDisabled && handleBettingNumberSelection(9)
+                }
               >
                 <img
                   src={betNum9}
@@ -2305,7 +2559,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet9}
-                    onChange={(e) => handleBetInputChange("bet9", e.target.value)}
+                    onChange={(e) =>
+                      handleBetInputChange("bet9", e.target.value)
+                    }
                     onBlur={(e) => handleBetValueChange("bet9", e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -2321,15 +2577,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-full transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(10)
                     ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
-                onClick={() => !isBettingDisabled && handleBettingNumberSelection(10)}
+                onClick={() =>
+                  !isBettingDisabled && handleBettingNumberSelection(10)
+                }
               >
                 <img
                   src={betNum10}
@@ -2340,8 +2598,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet10}
-                    onChange={(e) => handleBetInputChange("bet10", e.target.value)}
-                    onBlur={(e) => handleBetValueChange("bet10", e.target.value)}
+                    onChange={(e) =>
+                      handleBetInputChange("bet10", e.target.value)
+                    }
+                    onBlur={(e) =>
+                      handleBetValueChange("bet10", e.target.value)
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.target.blur();
@@ -2356,15 +2618,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-full transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(11)
                     ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
-                onClick={() => !isBettingDisabled && handleBettingNumberSelection(11)}
+                onClick={() =>
+                  !isBettingDisabled && handleBettingNumberSelection(11)
+                }
               >
                 <img
                   src={betNum11}
@@ -2375,8 +2639,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet11}
-                    onChange={(e) => handleBetInputChange("bet11", e.target.value)}
-                    onBlur={(e) => handleBetValueChange("bet11", e.target.value)}
+                    onChange={(e) =>
+                      handleBetInputChange("bet11", e.target.value)
+                    }
+                    onBlur={(e) =>
+                      handleBetValueChange("bet11", e.target.value)
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.target.blur();
@@ -2391,15 +2659,17 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-full transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 } ${
                   isBettingNumberHighlighted(12)
                     ? "border-2 border-yellow-400 rounded-lg"
                     : ""
                 }`}
-                onClick={() => !isBettingDisabled && handleBettingNumberSelection(12)}
+                onClick={() =>
+                  !isBettingDisabled && handleBettingNumberSelection(12)
+                }
               >
                 <img
                   src={betNum12}
@@ -2410,8 +2680,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   <input
                     type="number"
                     value={betValues.bet12}
-                    onChange={(e) => handleBetInputChange("bet12", e.target.value)}
-                    onBlur={(e) => handleBetValueChange("bet12", e.target.value)}
+                    onChange={(e) =>
+                      handleBetInputChange("bet12", e.target.value)
+                    }
+                    onBlur={(e) =>
+                      handleBetValueChange("bet12", e.target.value)
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.target.blur();
@@ -2436,11 +2710,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               src={arrowLeft}
               alt="Arrow Up"
               className={`absolute object-contain transition-transform pointer-events-auto ${
-                isBettingDisabled 
-                  ? "opacity-50 cursor-not-allowed" 
+                isBettingDisabled
+                  ? "opacity-50 cursor-not-allowed"
                   : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow1') ? "rounded-lg" : ""
+                (selectedButton || []).includes("arrow1") ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
@@ -2448,17 +2722,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 top: "28.5%",
                 right: "0%",
               }}
-              onClick={() => !isBettingDisabled && handleButtonSelection('arrow1')}
+              onClick={() =>
+                !isBettingDisabled && handleButtonSelection("arrow1")
+              }
             />
             <img
               src={arrowLeft}
               alt="Arrow Up"
               className={`absolute object-contain transition-transform pointer-events-auto ${
-                isBettingDisabled 
-                  ? "opacity-50 cursor-not-allowed" 
+                isBettingDisabled
+                  ? "opacity-50 cursor-not-allowed"
                   : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow2') ? "rounded-lg" : ""
+                (selectedButton || []).includes("arrow2") ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
@@ -2466,17 +2742,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 top: "51.5%",
                 right: "0%",
               }}
-              onClick={() => !isBettingDisabled && handleButtonSelection('arrow2')}
+              onClick={() =>
+                !isBettingDisabled && handleButtonSelection("arrow2")
+              }
             />
             <img
               src={arrowLeft}
               alt="Arrow Up"
               className={`absolute object-contain transition-transform pointer-events-auto ${
-                isBettingDisabled 
-                  ? "opacity-50 cursor-not-allowed" 
+                isBettingDisabled
+                  ? "opacity-50 cursor-not-allowed"
                   : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow3') ? "rounded-lg" : ""
+                (selectedButton || []).includes("arrow3") ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
@@ -2484,17 +2762,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 top: "76%",
                 right: "0%",
               }}
-              onClick={() => !isBettingDisabled && handleButtonSelection('arrow3')}
+              onClick={() =>
+                !isBettingDisabled && handleButtonSelection("arrow3")
+              }
             />
             <img
               src={arrowUp}
               alt="Arrow Left"
               className={`absolute object-contain transition-transform pointer-events-auto ${
-                isBettingDisabled 
-                  ? "opacity-50 cursor-not-allowed" 
+                isBettingDisabled
+                  ? "opacity-50 cursor-not-allowed"
                   : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow4') ? "rounded-lg" : ""
+                (selectedButton || []).includes("arrow4") ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
@@ -2502,17 +2782,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 bottom: "0%",
                 left: "15.5%",
               }}
-              onClick={() => !isBettingDisabled && handleButtonSelection('arrow4')}
+              onClick={() =>
+                !isBettingDisabled && handleButtonSelection("arrow4")
+              }
             />
             <img
               src={arrowUp}
               alt="Arrow Left"
               className={`absolute object-contain transition-transform pointer-events-auto ${
-                isBettingDisabled 
-                  ? "opacity-50 cursor-not-allowed" 
+                isBettingDisabled
+                  ? "opacity-50 cursor-not-allowed"
                   : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow5') ? "rounded-lg" : ""
+                (selectedButton || []).includes("arrow5") ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
@@ -2520,17 +2802,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 bottom: "0%",
                 left: "36%",
               }}
-              onClick={() => !isBettingDisabled && handleButtonSelection('arrow5')}
+              onClick={() =>
+                !isBettingDisabled && handleButtonSelection("arrow5")
+              }
             />
             <img
               src={arrowUp}
               alt="Arrow Left"
               className={`absolute object-contain transition-transform pointer-events-auto ${
-                isBettingDisabled 
-                  ? "opacity-50 cursor-not-allowed" 
+                isBettingDisabled
+                  ? "opacity-50 cursor-not-allowed"
                   : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow6') ? "rounded-lg" : ""
+                (selectedButton || []).includes("arrow6") ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
@@ -2538,17 +2822,19 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 bottom: "0%",
                 left: "56.5%",
               }}
-              onClick={() => !isBettingDisabled && handleButtonSelection('arrow6')}
+              onClick={() =>
+                !isBettingDisabled && handleButtonSelection("arrow6")
+              }
             />
             <img
               src={arrowUp}
               alt="Arrow Left"
               className={`absolute object-contain transition-transform pointer-events-auto ${
-                isBettingDisabled 
-                  ? "opacity-50 cursor-not-allowed" 
+                isBettingDisabled
+                  ? "opacity-50 cursor-not-allowed"
                   : "hover:scale-105 cursor-pointer"
               } ${
-                (selectedButton || []).includes('arrow7') ? "rounded-lg" : ""
+                (selectedButton || []).includes("arrow7") ? "rounded-lg" : ""
               }`}
               style={{
                 width: "8%",
@@ -2556,7 +2842,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                 bottom: "0%",
                 left: "77%",
               }}
-              onClick={() => !isBettingDisabled && handleButtonSelection('arrow7')}
+              onClick={() =>
+                !isBettingDisabled && handleButtonSelection("arrow7")
+              }
             />
           </div>
         </div>
@@ -2589,8 +2877,13 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
           {/* Table Header */}
           <div className="bg-teal-800 border-t-2 border-yellow-500 py-2 px-4 flex">
-            <div className="flex-1 text-white font-bold text-md text-center">TIME</div>
-            <div className="flex-1 text-white font-bold text-md text-center"> RESULT </div>
+            <div className="flex-1 text-white font-bold text-md text-center">
+              TIME
+            </div>
+            <div className="flex-1 text-white font-bold text-md text-center">
+              {" "}
+              RESULT{" "}
+            </div>
           </div>
 
           {/* Table Rows */}
@@ -2614,7 +2907,9 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                               alt={`Result ${draw.result}`}
                               className="imgResult object-contain"
                             />
-                            <span className="textMultiplier">{draw.multiplier}x</span>
+                            <span className="textMultiplier">
+                              {draw.multiplier}x
+                            </span>
                           </div>
                         ) : (
                           <span className="text-gray-400">-</span>
@@ -2663,7 +2958,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           />
           <div className="absolute inset-0 flex items-center justify-around ">
             <div className="text-white font-bold text-2xl">
-              PLAY: <span className="text-orange-500">{totalBetPlacedInRound}</span>
+              PLAY:{" "}
+              <span className="text-orange-500">{totalBetPlacedInRound}</span>
             </div>
             <div className="text-white font-bold text-2xl">
               WIN: <span className="text-green-500">{winAmount}</span>
@@ -2684,8 +2980,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
             <div className="w-1/2 h-full flex items-center justify-around gap-2 p-4">
               <div
                 className={`relative w-36 h-36 transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 }`}
                 onClick={() => !isBettingDisabled && handleRepeatClick()}
@@ -2701,8 +2997,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-36 h-36 transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 }`}
                 onClick={() => !isBettingDisabled && handleDoubleClick()}
@@ -2718,14 +3014,16 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               </div>
               <div
                 className={`relative w-36 h-36 transition-transform ${
-                  isBettingDisabled 
-                    ? "opacity-50 cursor-not-allowed" 
+                  isBettingDisabled
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 }`}
                 onClick={() => {
                   playAllBtnSound();
                   if (isBettingDisabled) {
-                    toast.error("Betting is disabled in the last 20 seconds of the round.");
+                    toast.error(
+                      "Betting is disabled in the last 20 seconds of the round.",
+                    );
                     return;
                   }
                   const emptyBets = {};
@@ -2748,10 +3046,12 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
               <div
                 className={`relative w-36 h-36 transition-transform ${
                   isBettingDisabled || isBettingInProgress
-                    ? "opacity-50 cursor-not-allowed" 
+                    ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer hover:scale-105"
                 }`}
-                onClick={() => !isBettingDisabled && !isBettingInProgress && handleBetClick()}
+                onClick={() =>
+                  !isBettingDisabled && !isBettingInProgress && handleBetClick()
+                }
               >
                 <img
                   src={betButton}
@@ -2777,8 +3077,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   src={betCoin10}
                   alt="10 Coin"
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(10)}
@@ -2787,8 +3087,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   src={betCoin20}
                   alt="20 Coin"
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(20)}
@@ -2797,8 +3097,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   src={betCoin50}
                   alt="50 Coin"
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(50)}
@@ -2807,8 +3107,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   src={betCoin100}
                   alt="100 Coin"
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(100)}
@@ -2817,8 +3117,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   src={betCoin500}
                   alt="500 Coin"
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(500)}
@@ -2827,8 +3127,8 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
                   src={betCoin1000}
                   alt="1000 Coin"
                   className={`h-full max-h-full w-auto object-contain transition-transform ${
-                    isBettingDisabled 
-                      ? "opacity-50 cursor-not-allowed" 
+                    isBettingDisabled
+                      ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer hover:scale-105"
                   }`}
                   onClick={() => !isBettingDisabled && handleCoinClick(1000)}
@@ -2883,7 +3183,10 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       {/* Oops Popup - No Winner */}
       {showOopsPopup && (
         <OopsPopup
-          message={claimMessage || "There have no winning ticket. Better luck next time."}
+          message={
+            claimMessage ||
+            "There have no winning ticket. Better luck next time."
+          }
           onClose={() => {
             setShowOopsPopup(false);
             setClaimMessage("");

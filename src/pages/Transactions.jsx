@@ -222,7 +222,7 @@ const Transactions = ({ onClose }) => {
       <nav
         className="w-full h-16 flex items-center px-4 justify-between"
         style={{
-          background: "linear-gradient(to bottom, #0063cd, #4c017c)",
+          background: "linear-gradient(to bottom, #c20001, #a43406)",
         }}
       >
         {/* Logo - KSS brand logo on the left side */}
