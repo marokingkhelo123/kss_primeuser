@@ -295,7 +295,7 @@ const Receipt = ({ receiptData, onClose }) => {
   <div class="receipt-container">
     <div class="receipt-content">
       <div class="header">
-        <h2>WinZooo</h2>
+        <h2>JackPot</h2>
       </div>
       
       <div class="info-row">
@@ -463,7 +463,7 @@ const Receipt = ({ receiptData, onClose }) => {
                   lineHeight: "1.2"
                 }}
               >
-               WinZooo
+               JackPot
               </h2>
             </div>
 
