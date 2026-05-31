@@ -163,6 +163,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
   const lastClaimedBarcodeRef = useRef(""); // Cooldown: last submitted barcode
   const lastClaimTimeRef = useRef(0); // Cooldown: time of last submit (ms)
   const CLAIM_COOLDOWN_MS = 2000; // Ignore same barcode for 2s after submit
+  const BALANCE_SYNC_INTERVAL_MS = 3000; // Keep navbar balance live every 3s
 
   const isEditableElement = (element) => {
     if (!element) return false;
@@ -1068,11 +1069,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
           // Winner - show CongratulationsPopup
           setClaimCoins(result.profit);
           setShowCongratulationsPopup(true);
-          // Update balance - refresh from API to get the updated balance
-          // The backend already added the profit to the user's balance
-          if (userId) {
-            getUserBalance(userId);
-          }
+          // Update balance - backend already added profit. Keep optimistic UI for instant feedback.
           // Also update local balance immediately for better UX
           if (user._id === userId) {
             setBalance((prevBalance) => {
@@ -1098,6 +1095,11 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
             "There have no winning ticket. Better luck next time.",
           );
           setShowOopsPopup(true);
+        }
+        // Always re-sync from server after any valid scan response.
+        // This keeps navbar balance live for winner/non-winner/already-scanned paths.
+        if (user._id) {
+          getUserBalance(user._id);
         }
       } else {
         toast.error("Invalid response from server.");
@@ -1192,6 +1194,39 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       }
     }
   }, []);
+
+  // Keep navbar balance truly live while user is on Landing page.
+  useEffect(() => {
+    if (!userId) return;
+
+    const syncBalance = () => {
+      getUserBalance(userId);
+    };
+
+    // Immediate sync so user doesn't wait for first interval tick.
+    syncBalance();
+
+    const balanceIntervalId = setInterval(syncBalance, BALANCE_SYNC_INTERVAL_MS);
+
+    const handleWindowFocus = () => {
+      syncBalance();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        syncBalance();
+      }
+    };
+
+    window.addEventListener("focus", handleWindowFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(balanceIntervalId);
+      window.removeEventListener("focus", handleWindowFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [userId]);
 
   // Fetch live game data
   const getLiveGame = async () => {
