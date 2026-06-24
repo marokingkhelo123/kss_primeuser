@@ -22,6 +22,7 @@ export default defineConfig({
     host: '0.0.0.0',
     allowedHosts: [
       'kss-primeuser.up.railway.app',
+      'kss2-primeuser.up.railway.app',
       'winzoo-10kadum-primeuser.up.railway.app'
     ],
   },
