@@ -1376,7 +1376,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
 
     const startTime = new Date(currentGame.startTime);
     const currentTime = new Date();
-    const duration = currentGame.duration || 5; // Default to 5 minutes if not provided
+    const duration = currentGame.duration || 2; // Default to 2 minutes if not provided
 
     // Calculate end time (startTime + duration in minutes)
     const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
