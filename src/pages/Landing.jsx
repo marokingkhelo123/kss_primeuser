@@ -87,6 +87,7 @@ import win7x from "../assets/images/3_landing/slotmachine/win_7x@2x.png";
 import win8x from "../assets/images/3_landing/slotmachine/win_8x@2x.png";
 import win9x from "../assets/images/3_landing/slotmachine/win_9x@2x.png";
 import { api } from "../utils/api";
+import { getRemainingMs, stampServerClock } from "../utils/gameClock";
 import toast from "react-hot-toast";
 import Receipt from "../components/Receipt";
 import AttentionPopup from "../components/AttentionPopup";
@@ -1234,7 +1235,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       const response = await api.get("/users/getLiveGame");
       if (response.data && response.data.data) {
         const gameData = response.data.data;
-        setCurrentGame(gameData);
+        setCurrentGame(stampServerClock(gameData));
 
         // Extract win amount from totalUsersPlayed array
         if (
@@ -1292,7 +1293,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
         ) {
           // Winner found! Store the data and stop making more calls
           storeWinnerData(gameData.winning_number, gameData.winning_x, gameId);
-          setCurrentGame(gameData);
+          setCurrentGame(stampServerClock(gameData));
           isApiCallInProgressRef.current = false;
           return true; // Return true to indicate winner found
         }
@@ -1374,15 +1375,7 @@ const Landing = ({ onLogout, onShowMyAccount }) => {
       return;
     }
 
-    const startTime = new Date(currentGame.startTime);
-    const currentTime = new Date();
-    const duration = currentGame.duration || 2; // Default to 2 minutes if not provided
-
-    // Calculate end time (startTime + duration in minutes)
-    const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
-
-    // Calculate time difference
-    const timeDifference = endTime.getTime() - currentTime.getTime();
+    const timeDifference = getRemainingMs(currentGame);
 
     if (timeDifference <= 0) {
       // Timer has ended, fetch new game
