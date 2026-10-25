@@ -17,7 +17,7 @@ export default defineConfig({
   server: {
     port: 3001,
     watch: {
-      ignored: ['**/release/**', '**/release-2min/**'],
+      ignored: ['**/release*/**'],
     },
   },
   preview: {
