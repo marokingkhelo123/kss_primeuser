@@ -1,4 +1,31 @@
 import React, { useEffect, useRef, useState } from "react";
+import umbrellaIcon from "../assets/images/icon-ticket/1umbrella.png";
+import footballIcon from "../assets/images/icon-ticket/2football.png";
+import sunIcon from "../assets/images/icon-ticket/3sun.png";
+import divaIcon from "../assets/images/icon-ticket/4diva.png";
+import cowIcon from "../assets/images/icon-ticket/5cow.png";
+import bucketIcon from "../assets/images/icon-ticket/6bucket.png";
+import kiteIcon from "../assets/images/icon-ticket/7kite.png";
+import bhovaraIcon from "../assets/images/icon-ticket/8bhovara.png";
+import roseIcon from "../assets/images/icon-ticket/9rose.png";
+import butterflyIcon from "../assets/images/icon-ticket/10butterfly.png";
+import pigeonIcon from "../assets/images/icon-ticket/11pigeon.png";
+import rabbitIcon from "../assets/images/icon-ticket/12Rabbit.png";
+
+const ticketIcons = {
+  1: umbrellaIcon,
+  2: footballIcon,
+  3: sunIcon,
+  4: divaIcon,
+  5: cowIcon,
+  6: bucketIcon,
+  7: kiteIcon,
+  8: bhovaraIcon,
+  9: roseIcon,
+  10: butterflyIcon,
+  11: pigeonIcon,
+  12: rabbitIcon,
+};
 
 /**
  * RECEIPT PRINTER MARGINS/PADDING SETTINGS:
@@ -25,6 +52,7 @@ const Receipt = ({ receiptData, onClose }) => {
   const printedReceiptsRef = useRef(new Set());
   const receiptIdRef = useRef(null);
   const [barcodeFontDataUrl, setBarcodeFontDataUrl] = useState(null);
+  const [iconDataUrls, setIconDataUrls] = useState({});
 
   // Format uniqueString for Code39 barcode (requires * at start and end)
   const formatCode39 = (text) => {
@@ -120,6 +148,27 @@ const Receipt = ({ receiptData, onClose }) => {
     });
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(
+      Object.entries(ticketIcons).map(async ([number, url]) => {
+        const response = await fetch(url);
+        const buffer = await response.arrayBuffer();
+        const base64 = arrayBufferToBase64(buffer);
+        return [number, `data:image/png;base64,${base64}`];
+      })
+    )
+      .then((entries) => {
+        if (!cancelled) setIconDataUrls(Object.fromEntries(entries));
+      })
+      .catch((error) => {
+        console.error("Error loading ticket icons:", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const receiptWidthMm = 74;
 
   // Generate receipt HTML for printing (matches browser version exactly)
@@ -139,14 +188,19 @@ const Receipt = ({ receiptData, onClose }) => {
     // Generate bet rows HTML (matching browser version structure)
     const betRowsHTML = Array.from({ length: maxColumnLength })
       .map((_, rowIndex) => {
-        const col1 = betColumns[0][rowIndex] ? `${betColumns[0][rowIndex].number} * ${betColumns[0][rowIndex].amount}` : "";
-        const col2 = betColumns[1][rowIndex] ? `${betColumns[1][rowIndex].number} * ${betColumns[1][rowIndex].amount}` : "";
-        const col3 = betColumns[2][rowIndex] ? `${betColumns[2][rowIndex].number} * ${betColumns[2][rowIndex].amount}` : "";
+        const betCell = (bet) => {
+          if (!bet) return "";
+          const iconSrc = iconDataUrls[bet.number] || "";
+          const icon = iconSrc
+            ? `<img src="${iconSrc}" alt="" style="width:28px;height:28px;object-fit:contain;display:block;" />`
+            : `<span>${bet.number}</span>`;
+          return `<div style="display:flex;align-items:center;gap:6px;min-height:32px;">${icon}<span>* ${bet.amount}</span></div>`;
+        };
         return `
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; padding: 1px 0; line-height: 1.3; font-size: ${fontSizes.xs}px;">
-            <div>${col1}</div>
-            <div>${col2}</div>
-            <div>${col3}</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; padding: 2px 0; font-size: ${fontSizes.xs}px;">
+            <div>${betCell(betColumns[0][rowIndex])}</div>
+            <div>${betCell(betColumns[1][rowIndex])}</div>
+            <div>${betCell(betColumns[2][rowIndex])}</div>
           </div>
         `;
       })
@@ -407,12 +461,17 @@ const Receipt = ({ receiptData, onClose }) => {
     };
 
     // Wait briefly for font load; print even if it never arrives
+    const iconsReady = Object.keys(iconDataUrls).length === 12;
+    if (!iconsReady) {
+      const fallbackTimer = setTimeout(triggerPrint, 2000);
+      return () => clearTimeout(fallbackTimer);
+    }
     const printTimer = setTimeout(() => {
       triggerPrint();
     }, barcodeFontDataUrl ? 600 : 900);
 
     return () => clearTimeout(printTimer);
-  }, [receiptData, barcodeFontDataUrl, onClose]);
+  }, [receiptData, barcodeFontDataUrl, iconDataUrls, onClose]);
 
   const betDetails = formatBetDetails(receiptData?.betAmounts || {});
   const betColumns = distributeBetsIntoColumns(betDetails);
@@ -523,15 +582,36 @@ const Receipt = ({ receiptData, onClose }) => {
               <div className="grid grid-cols-3 gap-1" style={{ fontSize: `${fontSizes.xs}px` }}>
                 {Array.from({ length: maxColumnLength }).map((_, rowIndex) => (
                   <React.Fragment key={rowIndex}>
-                    <div style={{ padding: "1px 0", lineHeight: "1.3" }}>
-                      {betColumns[0][rowIndex] ? `${betColumns[0][rowIndex].number} * ${betColumns[0][rowIndex].amount}` : ""}
-                    </div>
-                    <div style={{ padding: "1px 0", lineHeight: "1.3" }}>
-                      {betColumns[1][rowIndex] ? `${betColumns[1][rowIndex].number} * ${betColumns[1][rowIndex].amount}` : ""}
-                    </div>
-                    <div style={{ padding: "1px 0", lineHeight: "1.3" }}>
-                      {betColumns[2][rowIndex] ? `${betColumns[2][rowIndex].number} * ${betColumns[2][rowIndex].amount}` : ""}
-                    </div>
+                    {[0, 1, 2].map((columnIndex) => {
+                      const bet = betColumns[columnIndex][rowIndex];
+                      return (
+                        <div
+                          key={columnIndex}
+                          style={{
+                            padding: "2px 0",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            minHeight: "32px",
+                          }}
+                        >
+                          {bet ? (
+                            <>
+                              <img
+                                src={ticketIcons[bet.number]}
+                                alt=""
+                                style={{
+                                  width: "28px",
+                                  height: "28px",
+                                  objectFit: "contain",
+                                }}
+                              />
+                              <span>* {bet.amount}</span>
+                            </>
+                          ) : null}
+                        </div>
+                      );
+                    })}
                   </React.Fragment>
                 ))}
               </div>
