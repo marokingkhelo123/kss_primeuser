@@ -16,6 +16,9 @@ export default defineConfig({
   },
   server: {
     port: 3001,
+    watch: {
+      ignored: ['**/release/**', '**/release-2min/**'],
+    },
   },
   preview: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 4173,

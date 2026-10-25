@@ -1,7 +1,25 @@
-node_modules
-dist
-.env
-.DS_Store
-*.log
-release/
+# Installed packages. Keep package.json and package-lock.json.
+node_modules/
 
+# Build output and Windows installers
+dist/
+dist-ssr/
+release*/
+*.exe
+*.blockmap
+
+# Local secrets and machine config
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs and caches
+*.log
+.eslintcache
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
